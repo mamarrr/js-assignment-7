@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import type { ApiError } from '@/api/errors'
 import { isApiError } from '@/api/errors'
 import { companyUsersApi } from '@/api/portal/companyUsers'
+import { useNotificationStore } from '@/stores/notifications'
 import type { ApiRecord } from '@/types/api'
 import HierarchyState from './HierarchyState.vue'
 import RecordForm from './RecordForm.vue'
@@ -11,6 +12,7 @@ import RecordTable from './RecordTable.vue'
 import { buildPayload, pickFirstArray, routeParam, seedForm, type FieldConfig } from './helpers'
 
 const route = useRoute()
+const notifications = useNotificationStore()
 const fields = ref<FieldConfig[]>([
   { key: 'email', label: 'Email', type: 'email' },
   { key: 'roleId', label: 'Role', type: 'select', options: [] },
@@ -49,6 +51,7 @@ const add = async () => {
   try {
     await companyUsersApi.add(companySlug(), buildPayload(fields.value, form.value))
     form.value = seedForm(fields.value)
+    notifications.push({ tone: 'success', title: 'Company user added.' })
     await load()
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
@@ -62,6 +65,10 @@ const decide = async (requestId: unknown, approved: boolean) => {
   try {
     if (approved) await companyUsersApi.approveAccessRequest(companySlug(), String(requestId))
     else await companyUsersApi.rejectAccessRequest(companySlug(), String(requestId))
+    notifications.push({
+      tone: 'success',
+      title: approved ? 'Access request approved.' : 'Access request rejected.',
+    })
     await load()
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
@@ -89,6 +96,9 @@ const decide = async (requestId: unknown, approved: boolean) => {
         <button v-for="request in requests()" :key="String(request.requestId)" :disabled="pending" @click="decide(request.requestId, true)">Approve {{ request.requesterEmail }}</button>
         <button v-for="request in requests()" :key="`${request.requestId}-reject`" :disabled="pending" @click="decide(request.requestId, false)">Reject {{ request.requesterEmail }}</button>
       </div>
+      <RouterLink class="transfer-link" :to="`/companies/${companySlug()}/users/transfer-ownership`">
+        Transfer ownership
+      </RouterLink>
       <RecordTable
         title="Current users"
         :rows="members()"
@@ -115,5 +125,13 @@ const decide = async (requestId: unknown, approved: boolean) => {
 .request-actions {
   grid-template-columns: repeat(auto-fit, minmax(12rem, max-content));
 }
-</style>
 
+.transfer-link {
+  justify-self: start;
+  border: 1px solid #b9c3d0;
+  border-radius: 6px;
+  padding: 0.6rem 0.8rem;
+  text-decoration: none;
+  font-weight: 700;
+}
+</style>

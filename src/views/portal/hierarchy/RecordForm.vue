@@ -2,7 +2,7 @@
 import type { ApiError } from '@/api/errors'
 import type { ApiRecord } from '@/types/api'
 import type { FieldConfig } from './helpers'
-import { labelForOption } from './helpers'
+import { fieldErrorsFor, labelForOption } from './helpers'
 
 defineProps<{
   title: string
@@ -67,8 +67,8 @@ const update = (modelValue: ApiRecord, key: string, value: string) => {
         :disabled="pending"
         @input="update(modelValue, field.key, ($event.target as HTMLInputElement).value)"
       />
-      <small v-if="error?.fieldErrors?.[field.key]?.length" class="hierarchy-field-error">
-        {{ error.fieldErrors[field.key]?.join(' ') }}
+      <small v-if="fieldErrorsFor(error?.fieldErrors, field.key).length" class="hierarchy-field-error">
+        {{ fieldErrorsFor(error?.fieldErrors, field.key).join(' ') }}
       </small>
     </label>
 

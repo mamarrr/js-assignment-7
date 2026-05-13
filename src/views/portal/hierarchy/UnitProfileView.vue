@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import type { ApiError } from '@/api/errors'
 import { isApiError } from '@/api/errors'
 import { unitsApi } from '@/api/portal/units'
+import { useNotificationStore } from '@/stores/notifications'
 import type { ApiRecord } from '@/types/api'
 import HierarchyState from './HierarchyState.vue'
 import RecordForm from './RecordForm.vue'
@@ -11,6 +12,7 @@ import { buildPayload, routeParam, seedForm, type FieldConfig } from './helpers'
 
 const route = useRoute()
 const router = useRouter()
+const notifications = useNotificationStore()
 const fields: FieldConfig[] = [
   { key: 'unitNr', label: 'Unit number' },
   { key: 'floorNr', label: 'Floor', type: 'number' },
@@ -45,6 +47,7 @@ const save = async () => {
       fields,
       await unitsApi.updateProfile(companySlug(), customerSlug(), propertySlug(), unitSlug(), buildPayload(fields, form.value)),
     )
+    notifications.push({ tone: 'success', title: 'Unit profile updated.' })
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
   } finally {
@@ -59,6 +62,7 @@ const remove = async () => {
     await unitsApi.deleteProfile(companySlug(), customerSlug(), propertySlug(), unitSlug(), {
       deleteConfirmation: String(deleteForm.value.deleteConfirmation ?? ''),
     })
+    notifications.push({ tone: 'success', title: 'Unit deleted.' })
     await router.push(`/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units`)
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
@@ -83,4 +87,3 @@ const remove = async () => {
   gap: 1rem;
 }
 </style>
-

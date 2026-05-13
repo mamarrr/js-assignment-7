@@ -4,6 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import type { ApiError } from '@/api/errors'
 import { isApiError } from '@/api/errors'
 import { companyUsersApi } from '@/api/portal/companyUsers'
+import AppConfirmationDialog from '@/components/AppConfirmationDialog.vue'
+import { useNotificationStore } from '@/stores/notifications'
 import type { ApiRecord } from '@/types/api'
 import HierarchyState from './HierarchyState.vue'
 import RecordForm from './RecordForm.vue'
@@ -11,6 +13,7 @@ import { routeParam, seedForm, type FieldConfig } from './helpers'
 
 const route = useRoute()
 const router = useRouter()
+const notifications = useNotificationStore()
 const fields = ref<FieldConfig[]>([
   {
     key: 'targetMembershipId',
@@ -25,6 +28,7 @@ const loading = ref(true)
 const pending = ref(false)
 const error = ref<ApiError | null>(null)
 const form = ref<ApiRecord>(seedForm(fields.value))
+const confirmOpen = ref(false)
 const companySlug = () => routeParam(route.params.companySlug)
 
 onMounted(async () => {
@@ -47,6 +51,7 @@ const transfer = async () => {
     await companyUsersApi.transferOwnership(companySlug(), {
       targetMembershipId: String(form.value.targetMembershipId ?? ''),
     })
+    notifications.push({ tone: 'success', title: 'Company ownership transferred.' })
     await router.push(`/companies/${companySlug()}/users`)
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
@@ -67,8 +72,17 @@ const transfer = async () => {
       :error="error"
       submit-label="Transfer ownership"
       danger
-      @submit="transfer"
+      @submit="confirmOpen = true"
+    />
+    <AppConfirmationDialog
+      :open="confirmOpen"
+      title="Transfer ownership"
+      message="This will make the selected member the new company owner."
+      confirm-label="Transfer ownership"
+      destructive
+      :pending="pending"
+      @cancel="confirmOpen = false"
+      @confirm="transfer"
     />
   </HierarchyState>
 </template>
-

@@ -4,6 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import type { ApiError } from '@/api/errors'
 import { isApiError } from '@/api/errors'
 import { companyApi } from '@/api/portal/resources'
+import { useNotificationStore } from '@/stores/notifications'
 import type { ApiRecord } from '@/types/api'
 import HierarchyState from './HierarchyState.vue'
 import RecordForm from './RecordForm.vue'
@@ -11,6 +12,7 @@ import { buildPayload, routeParam, seedForm, type FieldConfig } from './helpers'
 
 const route = useRoute()
 const router = useRouter()
+const notifications = useNotificationStore()
 const fields: FieldConfig[] = [
   { key: 'name', label: 'Name' },
   { key: 'registryCode', label: 'Registry code' },
@@ -23,7 +25,7 @@ const fields: FieldConfig[] = [
 const loading = ref(true)
 const pending = ref(false)
 const error = ref<ApiError | null>(null)
-const success = ref('')
+const deleteError = ref<ApiError | null>(null)
 const form = ref<ApiRecord>({})
 const deleteForm = ref<ApiRecord>({ deleteConfirmation: '' })
 const confirm = ref('')
@@ -46,7 +48,7 @@ const save = async () => {
   try {
     const profile = await companyApi.updateProfile(companySlug(), buildPayload(fields, form.value))
     form.value = seedForm(fields, profile)
-    success.value = 'Company profile updated.'
+    notifications.push({ tone: 'success', title: 'Company profile updated.' })
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
   } finally {
@@ -56,10 +58,21 @@ const save = async () => {
 
 const remove = async () => {
   confirm.value = String(deleteForm.value.deleteConfirmation ?? '')
-  if (confirm.value !== 'DELETE') return
+  if (confirm.value !== 'DELETE') {
+    deleteError.value = {
+      status: 400,
+      title: 'Confirmation required',
+      message: 'Type DELETE to confirm this action.',
+      fieldErrors: { deleteConfirmation: ['Type DELETE to confirm this action.'] },
+      raw: null,
+    }
+    return
+  }
   pending.value = true
+  deleteError.value = null
   try {
-    await companyApi.deleteCompany(companySlug(), { deleteConfirmation: confirm.value })
+    await companyApi.deleteCompany(companySlug())
+    notifications.push({ tone: 'success', title: 'Company deleted.' })
     await router.push('/workspaces')
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
@@ -72,7 +85,6 @@ const remove = async () => {
 <template>
   <HierarchyState :loading="loading" :error="error">
     <div class="profile-grid">
-      <p v-if="success" class="success" role="status">{{ success }}</p>
       <RecordForm
         v-model="form"
         title="Company profile"
@@ -89,7 +101,7 @@ const remove = async () => {
         description="Type DELETE to confirm this destructive action."
         :fields="[{ key: 'deleteConfirmation', label: 'Confirmation' }]"
         :pending="pending"
-        :error="null"
+        :error="deleteError"
         submit-label="Delete company"
         danger
         @submit="remove"
@@ -102,12 +114,5 @@ const remove = async () => {
 .profile-grid {
   display: grid;
   gap: 1rem;
-}
-
-.success {
-  border: 1px solid #9bd8b4;
-  border-radius: 8px;
-  padding: 0.75rem;
-  background: #f0fff5;
 }
 </style>

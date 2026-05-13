@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import type { ApiError } from '@/api/errors'
 import { isApiError } from '@/api/errors'
 import { unitsApi } from '@/api/portal/units'
+import { useNotificationStore } from '@/stores/notifications'
 import type { ApiRecord } from '@/types/api'
 import HierarchyState from './HierarchyState.vue'
 import RecordForm from './RecordForm.vue'
@@ -11,6 +12,7 @@ import RecordTable from './RecordTable.vue'
 import { buildPayload, pickFirstArray, routeParam, seedForm, type FieldConfig } from './helpers'
 
 const route = useRoute()
+const notifications = useNotificationStore()
 const fields: FieldConfig[] = [
   { key: 'unitNr', label: 'Unit number' },
   { key: 'floorNr', label: 'Floor', type: 'number' },
@@ -46,6 +48,7 @@ const create = async () => {
   try {
     await unitsApi.create(companySlug(), customerSlug(), propertySlug(), buildPayload(fields, form.value))
     form.value = seedForm(fields)
+    notifications.push({ tone: 'success', title: 'Unit created.' })
     await load()
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
@@ -80,4 +83,3 @@ const create = async () => {
   gap: 1rem;
 }
 </style>
-

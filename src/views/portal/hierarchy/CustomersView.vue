@@ -4,6 +4,7 @@ import { useRoute } from 'vue-router'
 import type { ApiError } from '@/api/errors'
 import { isApiError } from '@/api/errors'
 import { customersApi } from '@/api/portal/customers'
+import { useNotificationStore } from '@/stores/notifications'
 import type { ApiRecord } from '@/types/api'
 import HierarchyState from './HierarchyState.vue'
 import RecordForm from './RecordForm.vue'
@@ -11,6 +12,7 @@ import RecordTable from './RecordTable.vue'
 import { buildPayload, pickFirstArray, routeParam, seedForm, type FieldConfig } from './helpers'
 
 const route = useRoute()
+const notifications = useNotificationStore()
 const fields: FieldConfig[] = [
   { key: 'name', label: 'Name' },
   { key: 'registryCode', label: 'Registry code' },
@@ -45,6 +47,7 @@ const create = async () => {
   try {
     await customersApi.create(companySlug(), buildPayload(fields, form.value))
     form.value = seedForm(fields)
+    notifications.push({ tone: 'success', title: 'Customer created.' })
     await load()
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
@@ -89,4 +92,3 @@ const create = async () => {
   gap: 1rem;
 }
 </style>
-

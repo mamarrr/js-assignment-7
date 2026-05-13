@@ -68,3 +68,11 @@ export const labelForOption = (option: ApiRecord, valueKey = 'id', labelKey = 'l
   label: String(option[labelKey] ?? option.name ?? option.text ?? option.code ?? option[valueKey] ?? ''),
 })
 
+export const fieldErrorsFor = (errors: Record<string, string[]> | undefined, key: string) => {
+  if (!errors) return []
+  const direct = errors[key]
+  if (direct) return direct
+
+  const match = Object.entries(errors).find(([errorKey]) => errorKey.toLowerCase() === key.toLowerCase())
+  return match?.[1] ?? []
+}

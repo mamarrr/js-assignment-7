@@ -5,6 +5,7 @@ import type { ApiError } from '@/api/errors'
 import { isApiError } from '@/api/errors'
 import { propertiesApi } from '@/api/portal/properties'
 import { lookupsApi } from '@/api/portal/lookups'
+import { useNotificationStore } from '@/stores/notifications'
 import type { ApiRecord } from '@/types/api'
 import HierarchyState from './HierarchyState.vue'
 import RecordForm from './RecordForm.vue'
@@ -12,6 +13,7 @@ import RecordTable from './RecordTable.vue'
 import { buildPayload, pickFirstArray, routeParam, seedForm, type FieldConfig } from './helpers'
 
 const route = useRoute()
+const notifications = useNotificationStore()
 const fields = ref<FieldConfig[]>([
   { key: 'name', label: 'Name' },
   { key: 'propertyTypeId', label: 'Property type', type: 'select', options: [] },
@@ -50,6 +52,7 @@ const create = async () => {
   try {
     await propertiesApi.create(companySlug(), customerSlug(), buildPayload(fields.value, form.value))
     form.value = seedForm(fields.value)
+    notifications.push({ tone: 'success', title: 'Property created.' })
     await load()
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
