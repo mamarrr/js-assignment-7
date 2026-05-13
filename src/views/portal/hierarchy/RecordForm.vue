@@ -68,7 +68,7 @@ const update = (modelValue: ApiRecord, key: string, value: string) => {
         @input="update(modelValue, field.key, ($event.target as HTMLInputElement).value)"
       />
       <small v-if="error?.fieldErrors?.[field.key]?.length" class="hierarchy-field-error">
-        {{ error.fieldErrors[field.key].join(' ') }}
+        {{ error.fieldErrors[field.key]?.join(' ') }}
       </small>
     </label>
 
@@ -154,4 +154,3 @@ textarea {
   opacity: 0.65;
 }
 </style>
-

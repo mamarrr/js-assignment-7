@@ -20,6 +20,8 @@ export const portalApi = {
   put: <T = unknown>(template: string, params: PortalParams, body?: ApiRecord) =>
     apiRequest<T>(resolvePortalPath(template, params), { method: 'PUT', body: body ?? {} }),
   delete: <T = unknown>(template: string, params: PortalParams, body?: ApiRecord) =>
-    apiRequest<T>(resolvePortalPath(template, params), { method: 'DELETE', body: body ?? {} }),
+    apiRequest<T>(resolvePortalPath(template, params), {
+      method: 'DELETE',
+      ...(body === undefined ? {} : { body }),
+    }),
 }
-

@@ -25,6 +25,7 @@ const pending = ref(false)
 const error = ref<ApiError | null>(null)
 const success = ref('')
 const form = ref<ApiRecord>({})
+const deleteForm = ref<ApiRecord>({ deleteConfirmation: '' })
 const confirm = ref('')
 const companySlug = () => routeParam(route.params.companySlug)
 
@@ -54,6 +55,7 @@ const save = async () => {
 }
 
 const remove = async () => {
+  confirm.value = String(deleteForm.value.deleteConfirmation ?? '')
   if (confirm.value !== 'DELETE') return
   pending.value = true
   try {
@@ -82,7 +84,7 @@ const remove = async () => {
         @submit="save"
       />
       <RecordForm
-        v-model="({ deleteConfirmation: confirm } as ApiRecord)"
+        v-model="deleteForm"
         title="Delete company"
         description="Type DELETE to confirm this destructive action."
         :fields="[{ key: 'deleteConfirmation', label: 'Confirmation' }]"
@@ -90,7 +92,6 @@ const remove = async () => {
         :error="null"
         submit-label="Delete company"
         danger
-        @update:model-value="confirm = String($event.deleteConfirmation ?? '')"
         @submit="remove"
       />
     </div>
@@ -110,4 +111,3 @@ const remove = async () => {
   background: #f0fff5;
 }
 </style>
-

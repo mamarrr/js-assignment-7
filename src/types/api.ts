@@ -77,7 +77,7 @@ export interface OnboardingStatusDto extends ApiRecord {
   canJoinManagementCompany?: boolean
 }
 
-export interface DeleteConfirmationDto {
+export interface DeleteConfirmationDto extends ApiRecord {
   deleteConfirmation?: string
   confirmation?: string
 }
@@ -85,22 +85,289 @@ export interface DeleteConfirmationDto {
 export type LookupOptionDto = ApiRecord
 
 export type ManagementDashboardDto = ApiRecord
+export type ManagementCompanyProfileDto = ApiRecord
+export type UpdateManagementCompanyDto = ApiRecord
+export type CustomerDashboardDto = ApiRecord
 export type CustomerListItemDto = ApiRecord
 export type CustomerProfileDto = ApiRecord
 export type CustomerRequestDto = ApiRecord
+export type PropertyDashboardDto = ApiRecord
 export type PropertyListItemDto = ApiRecord
 export type PropertyProfileDto = ApiRecord
+export type CreatePropertyDto = ApiRecord
+export type UpdatePropertyProfileDto = ApiRecord
+export type UnitDashboardDto = ApiRecord
 export type UnitListItemDto = ApiRecord
 export type UnitProfileDto = ApiRecord
+export type UnitRequestDto = ApiRecord
+export type ResidentDashboardDto = ApiRecord
 export type ResidentListItemDto = ApiRecord
 export type ResidentProfileDto = ApiRecord
-export type ManagementTicketsDto = ApiRecord
-export type TicketDetailsDto = ApiRecord
+export type ResidentRequestDto = ApiRecord
 export type TicketDto = ApiRecord
-export type ScheduledWorkListDto = ApiRecord
-export type ScheduledWorkDetailsDto = ApiRecord
-export type WorkLogListDto = ApiRecord
-export type VendorListItemDto = ApiRecord
-export type VendorProfileDto = ApiRecord
 export type CompanyUsersPageDto = ApiRecord
+export type AddCompanyUserDto = ApiRecord
+export type UpdateCompanyUserDto = ApiRecord
+export type CompanyUserEditDto = ApiRecord
+export type CompanyUserRoleOptionDto = ApiRecord
+export type OwnershipTransferCandidateDto = ApiRecord
+export type TransferOwnershipDto = ApiRecord
+export type OwnershipTransferResultDto = ApiRecord
+export type LeasePropertySearchResultDto = ApiRecord
+export type LeaseUnitOptionsDto = ApiRecord
+export type LeaseResidentSearchResultDto = ApiRecord
 
+export interface TicketOptionSetDto extends ApiRecord {
+  statuses?: ApiRecord[]
+  priorities?: ApiRecord[]
+  categories?: ApiRecord[]
+  customers?: ApiRecord[]
+  properties?: ApiRecord[]
+  units?: ApiRecord[]
+  residents?: ApiRecord[]
+  vendors?: ApiRecord[]
+}
+
+export interface TicketListItemDto extends ApiRecord {
+  ticketId?: string
+  ticketNr?: string
+  title?: string
+  statusLabel?: string
+  priorityLabel?: string
+  categoryLabel?: string
+  customerName?: string
+  propertyName?: string
+  unitNr?: string
+  residentName?: string
+  vendorName?: string
+  dueAt?: string
+  createdAt?: string
+}
+
+export interface ContextTicketsDto extends ApiRecord {
+  companyName?: string
+  contextName?: string
+  tickets?: TicketListItemDto[]
+  options?: TicketOptionSetDto
+}
+
+export interface ManagementTicketsDto extends ContextTicketsDto {}
+
+export interface TicketScheduledWorkSummaryDto extends ApiRecord {
+  scheduledWorkId?: string
+  vendorName?: string
+  workStatusLabel?: string
+  scheduledStart?: string
+  scheduledEnd?: string
+}
+
+export interface TicketDetailsDto extends TicketListItemDto {
+  description?: string
+  closedAt?: string
+  canAdvanceStatus?: boolean
+  nextStatusLabel?: string
+  transitionBlockingReasons?: string[]
+  scheduledWork?: TicketScheduledWorkSummaryDto[]
+}
+
+export interface TicketTransitionAvailabilityDto extends ApiRecord {
+  canAdvance?: boolean
+  nextStatusLabel?: string
+  blockingReasons?: string[]
+}
+
+export interface TicketFormDto extends ApiRecord {
+  companyName?: string
+  ticketId?: string
+  ticketNr?: string
+  title?: string
+  description?: string
+  ticketCategoryId?: string
+  ticketStatusId?: string
+  ticketPriorityId?: string
+  customerId?: string
+  propertyId?: string
+  unitId?: string
+  residentId?: string
+  vendorId?: string
+  dueAt?: string
+  options?: TicketOptionSetDto
+}
+
+export interface ScheduledWorkListItemDto extends ApiRecord {
+  scheduledWorkId?: string
+  vendorName?: string
+  workStatusLabel?: string
+  scheduledStart?: string
+  scheduledEnd?: string
+  realStart?: string
+  realEnd?: string
+  workLogCount?: number
+}
+
+export interface ScheduledWorkListDto extends ApiRecord {
+  ticketNr?: string
+  ticketTitle?: string
+  items?: ScheduledWorkListItemDto[]
+}
+
+export interface ScheduledWorkDetailsDto extends ScheduledWorkListItemDto {
+  ticketNr?: string
+  notes?: string
+}
+
+export interface ScheduledWorkFormDto extends ApiRecord {
+  ticketNr?: string
+  ticketTitle?: string
+  scheduledWorkId?: string
+  vendorId?: string
+  workStatusId?: string
+  scheduledStart?: string
+  scheduledEnd?: string
+  realStart?: string
+  realEnd?: string
+  notes?: string
+  vendors?: ApiRecord[]
+  workStatuses?: ApiRecord[]
+}
+
+export interface WorkLogListItemDto extends ApiRecord {
+  workLogId?: string
+  workStart?: string
+  workEnd?: string
+  hours?: number
+  materialCost?: number
+  laborCost?: number
+  appUserName?: string
+  description?: string
+}
+
+export interface WorkLogTotalsDto extends ApiRecord {
+  count?: number
+  hours?: number
+  materialCost?: number
+  totalCost?: number
+}
+
+export interface WorkLogListDto extends ApiRecord {
+  ticketNr?: string
+  vendorName?: string
+  workStatusLabel?: string
+  canViewCosts?: boolean
+  totals?: WorkLogTotalsDto
+  items?: WorkLogListItemDto[]
+}
+
+export interface WorkLogFormDto extends ApiRecord {
+  ticketNr?: string
+  vendorName?: string
+  canViewCosts?: boolean
+  workStart?: string
+  workEnd?: string
+  hours?: number
+  materialCost?: number
+  laborCost?: number
+  description?: string
+}
+
+export interface WorkLogDeleteModelDto extends ApiRecord {
+  description?: string
+}
+
+export interface LeaseDto extends ApiRecord {
+  leaseId?: string
+  residentId?: string
+  residentIdCode?: string
+  residentName?: string
+  propertyId?: string
+  propertyName?: string
+  unitId?: string
+  unitName?: string
+  unitSlug?: string
+  leaseRoleId?: string
+  leaseRoleLabel?: string
+  startDate?: string
+  endDate?: string
+  notes?: string
+}
+
+export interface LeaseRoleOptionsDto extends ApiRecord {
+  roles?: LeaseRoleOptionDto[]
+  leaseRoles?: LeaseRoleOptionDto[]
+}
+
+export interface LeaseRoleOptionDto extends ApiRecord {
+  leaseRoleId?: string
+  id?: string
+  label?: string
+  name?: string
+}
+
+export interface ContactAssignmentDto extends ApiRecord {
+  contactId?: string
+  validFrom?: string
+  validTo?: string | null
+  confirmed?: boolean
+  isPrimary?: boolean
+}
+
+export interface NewContactAssignmentDto extends ContactAssignmentDto {
+  contactTypeId?: string
+  contactValue?: string
+  contactNotes?: string | null
+}
+
+export interface ResidentContactItemDto extends ContactAssignmentDto {
+  residentContactId?: string
+  contactValue?: string
+  contactTypeLabel?: string
+}
+
+export interface ResidentContactListDto extends ApiRecord {
+  residentName?: string
+  contacts?: ResidentContactItemDto[]
+  existingContactOptions?: ApiRecord[]
+  contactTypeOptions?: ApiRecord[]
+}
+
+export interface VendorContactItemDto extends ContactAssignmentDto {
+  vendorContactId?: string
+  contactValue?: string
+  contactTypeLabel?: string
+  fullName?: string
+  roleTitle?: string
+}
+
+export interface VendorContactListDto extends ApiRecord {
+  vendorName?: string
+  contacts?: VendorContactItemDto[]
+  existingContactOptions?: ApiRecord[]
+  contactTypeOptions?: ApiRecord[]
+}
+
+export interface VendorListItemDto extends ApiRecord {
+  vendorId?: string
+  name?: string
+  registryCode?: string
+  notes?: string
+}
+
+export interface VendorProfileDto extends VendorListItemDto {}
+
+export interface VendorDeleteConfirmationDto extends ApiRecord {
+  confirmationRegistryCode?: string
+}
+
+export interface VendorCategoryAssignmentDto extends ApiRecord {
+  ticketCategoryId?: string
+  ticketCategoryLabel?: string
+  categoryName?: string
+  notes?: string
+}
+
+export interface VendorCategoryAssignmentListDto extends ApiRecord {
+  vendorName?: string
+  categories?: VendorCategoryAssignmentDto[]
+  assignedCategories?: VendorCategoryAssignmentDto[]
+  availableCategories?: ApiRecord[]
+}

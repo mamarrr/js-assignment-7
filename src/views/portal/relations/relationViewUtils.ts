@@ -54,7 +54,7 @@ export const optionId = (option: ApiRecord, fallbacks: string[]) =>
 export const optionLabel = (option: ApiRecord, fallbacks: string[]) =>
   String(fallbacks.map((key) => option[key]).find((value) => value !== undefined && value !== null) ?? '')
 
-export const asArray = <T>(value: unknown): T[] => (Array.isArray(value) ? value : [])
+export const asArray = <T = ApiRecord>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : [])
 
 export const createContactAssignmentForm = () =>
   reactive({
