@@ -30,7 +30,21 @@ const redirectTarget = computed(() => {
 const fieldErrors = (field: string) => {
   const apiErrors = summaryError.value?.fieldErrors ?? {}
   const pascalField = `${field.charAt(0).toUpperCase()}${field.slice(1)}`
-  return localErrors[field] ?? apiErrors[field] ?? apiErrors[pascalField] ?? []
+  const errors = [
+    ...(localErrors[field] ?? []),
+    ...(apiErrors[field] ?? []),
+    ...(apiErrors[pascalField] ?? []),
+  ]
+
+  if (field === 'email') {
+    return errors.map((error) =>
+      error === 'The Email field is not a valid e-mail address.'
+        ? 'Enter a valid email address that includes @.'
+        : error,
+    )
+  }
+
+  return errors
 }
 
 const validate = () => {
@@ -38,6 +52,8 @@ const validate = () => {
   localErrors.password = []
 
   if (!form.email.trim()) localErrors.email.push('Email is required.')
+  else if (!form.email.includes('@'))
+    localErrors.email.push('Enter a valid email address that includes @.')
   if (!form.password) localErrors.password.push('Password is required.')
 
   return !localErrors.email.length && !localErrors.password.length
