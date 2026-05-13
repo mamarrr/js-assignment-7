@@ -46,23 +46,31 @@ export interface WorkspaceOptionPermissionsDto extends ApiRecord {
 export interface WorkspaceOptionDto extends ApiRecord {
   id?: string
   workspaceId?: string
+  contextType?: string
+  contextId?: string
   companySlug?: string
+  managementCompanySlug?: string
   slug?: string
   displayName?: string
   name?: string
   type?: string
+  path?: string
+  isDefault?: boolean
   permissions?: WorkspaceOptionPermissionsDto
 }
 
 export interface WorkspaceCatalogDto extends ApiRecord {
+  managementCompanies?: WorkspaceOptionDto[]
+  customers?: WorkspaceOptionDto[]
+  residents?: WorkspaceOptionDto[]
   workspaces?: WorkspaceOptionDto[]
   options?: WorkspaceOptionDto[]
-  defaultContext?: ApiRecord
+  defaultContext?: WorkspaceOptionDto
 }
 
 export interface SelectWorkspaceDto extends ApiRecord {
-  workspaceId?: string
-  companySlug?: string
+  contextType?: string
+  contextId?: string
 }
 
 export interface WorkspaceRedirectDto extends ApiRecord {
@@ -70,13 +78,47 @@ export interface WorkspaceRedirectDto extends ApiRecord {
   redirectUrl?: string
   path?: string
   companySlug?: string
+  customerSlug?: string
+  residentIdCode?: string
 }
 
 export interface OnboardingStatusDto extends ApiRecord {
+  hasWorkspaceContext?: boolean
+  createManagementCompany?: boolean
+  joinManagementCompany?: boolean
+  defaultPath?: string
   hasUsableWorkspace?: boolean
   requiresOnboarding?: boolean
   canCreateManagementCompany?: boolean
   canJoinManagementCompany?: boolean
+}
+
+export interface CreateManagementCompanyDto extends ApiRecord {
+  name?: string
+  registryCode?: string
+  vatNumber?: string
+  email?: string
+  phone?: string
+  address?: string
+}
+
+export interface CreatedManagementCompanyDto extends ApiRecord {
+  id?: string
+  slug?: string
+  name?: string
+  path?: string
+}
+
+export interface JoinManagementCompanyRequestDto extends ApiRecord {
+  registryCode?: string
+  requestedRoleId?: string
+  message?: string
+}
+
+export interface JoinRequestResultDto extends ApiRecord {
+  success?: boolean
+  requestId?: string
+  message?: string
 }
 
 export interface DeleteConfirmationDto extends ApiRecord {

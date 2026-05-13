@@ -221,6 +221,11 @@ textarea {
   background: #fff5f5;
 }
 
+.alert--success {
+  border-color: #b8e6c9;
+  background: #f2fbf5;
+}
+
 .alert__details {
   margin-top: 0.5rem;
 }
@@ -404,6 +409,10 @@ p.field-errors {
   padding: 1.25rem;
 }
 
+.auth-card--wide {
+  width: min(100%, 58rem);
+}
+
 .auth-card__header {
   display: grid;
   gap: 0.25rem;
@@ -427,6 +436,43 @@ p.field-errors {
   gap: 0.9rem;
 }
 
+.choice-grid,
+.workspace-grid {
+  display: grid;
+  gap: 0.8rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.workspace-groups {
+  display: grid;
+  gap: 1rem;
+}
+
+.workspace-group {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.workspace-group h2,
+.workspace-grid h3 {
+  margin: 0;
+}
+
+.workspace-grid h3 {
+  font-size: 1rem;
+}
+
+.workspace-grid p {
+  margin: 0.25rem 0 0;
+  color: var(--app-muted);
+}
+
+.workspace-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
 @media (max-width: 1024px) {
   .app-body {
     grid-template-columns: 220px minmax(0, 1fr);
@@ -440,7 +486,9 @@ p.field-errors {
   }
 
   .app-body,
-  .content-grid--two {
+  .content-grid--two,
+  .choice-grid,
+  .workspace-grid {
     grid-template-columns: 1fr;
   }
 

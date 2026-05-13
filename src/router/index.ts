@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useWorkspaceStore } from '@/stores/workspace'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,32 +24,32 @@ const router = createRouter({
     {
       path: '/onboarding',
       name: 'onboarding',
-      component: () => import('@/views/FoundationView.vue'),
+      component: () => import('@/views/onboarding/OnboardingView.vue'),
       meta: { requiresAuth: true },
     },
     {
       path: '/onboarding/new-management-company',
       name: 'onboarding-new-management-company',
-      component: () => import('@/views/FoundationView.vue'),
+      component: () => import('@/views/onboarding/NewManagementCompanyView.vue'),
       meta: { requiresAuth: true },
     },
     {
       path: '/onboarding/join-management-company',
       name: 'onboarding-join-management-company',
-      component: () => import('@/views/FoundationView.vue'),
+      component: () => import('@/views/onboarding/JoinManagementCompanyView.vue'),
       meta: { requiresAuth: true },
     },
     {
       path: '/workspaces',
       name: 'workspaces',
-      component: () => import('@/views/FoundationView.vue'),
+      component: () => import('@/views/workspaces/WorkspacesView.vue'),
       meta: { requiresAuth: true },
     },
     {
       path: '/companies/:companySlug',
       name: 'company-dashboard',
-      component: () => import('@/views/FoundationView.vue'),
-      meta: { requiresAuth: true },
+      component: () => import('@/views/portal/hierarchy/CompanyDashboardView.vue'),
+      meta: { requiresAuth: true, requiresWorkspace: true },
     },
     {
       path: '/:pathMatch(.*)*',
@@ -60,9 +61,10 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const authStore = useAuthStore()
+  const workspaceStore = useWorkspaceStore()
 
   if (to.meta.guestOnly && authStore.isAuthenticated) {
-    return '/workspaces'
+    return workspaceStore.defaultPath ?? '/workspaces'
   }
 
   if (!to.meta.requiresAuth) return true
@@ -80,6 +82,29 @@ router.beforeEach(async (to) => {
       name: 'login',
       query: { redirect: to.fullPath },
     }
+  }
+
+  const startupReady = await workspaceStore.ensureStartupLoaded()
+  if (!startupReady) return true
+
+  const isOnboardingRoute = to.path.startsWith('/onboarding')
+  const isWorkspaceRoute = to.name === 'workspaces'
+
+  if (!workspaceStore.hasUsableWorkspace && !isOnboardingRoute) {
+    return { name: 'onboarding' }
+  }
+
+  if (isWorkspaceRoute && !workspaceStore.hasUsableWorkspace) {
+    return { name: 'onboarding' }
+  }
+
+  if (
+    isWorkspaceRoute &&
+    workspaceStore.workspaceOptions.length === 1 &&
+    workspaceStore.defaultPath &&
+    to.query.choose !== '1'
+  ) {
+    return workspaceStore.defaultPath
   }
 
   return true
