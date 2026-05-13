@@ -54,10 +54,13 @@ const load = async () => {
 }
 
 const searchResidents = async () => {
-  await state.run(async () => {
-    const result = await unitLeasesApi.searchResidents(scope.value, search.value)
-    residentResults.value = asArray<LeaseResidentSearchItemDto>(result.residents)
-  }, { pending: true })
+  await state.run(
+    async () => {
+      const result = await unitLeasesApi.searchResidents(scope.value, search.value)
+      residentResults.value = asArray<LeaseResidentSearchItemDto>(result.residents)
+    },
+    { pending: true },
+  )
 }
 
 const resetForm = () => {
@@ -129,7 +132,9 @@ onMounted(() => {
         <h1>Unit leases</h1>
         <span>{{ unitSlug }}</span>
       </div>
-      <RouterLink :to="`/companies/${companySlug}/customers/${customerSlug}/properties/${propertySlug}/units/${unitSlug}`">
+      <RouterLink
+        :to="`/companies/${companySlug}/customers/${customerSlug}/properties/${propertySlug}/units/${unitSlug}`"
+      >
         Back to unit
       </RouterLink>
     </header>
@@ -149,7 +154,9 @@ onMounted(() => {
           Resident search
           <span class="relations-inline">
             <input v-model="search" placeholder="Search residents" />
-            <button :disabled="state.pending.value" type="button" @click="searchResidents">Search</button>
+            <button :disabled="state.pending.value" type="button" @click="searchResidents">
+              Search
+            </button>
           </span>
         </label>
         <label v-if="!editing">
@@ -198,13 +205,17 @@ onMounted(() => {
           <small>{{ fieldError(state.error.value, 'notes') }}</small>
         </label>
         <div class="actions">
-          <button :disabled="state.pending.value" type="submit">{{ editing ? 'Save' : 'Create lease' }}</button>
+          <button :disabled="state.pending.value" type="submit">
+            {{ editing ? 'Save' : 'Create lease' }}
+          </button>
           <button v-if="editing" type="button" @click="resetForm">Cancel</button>
         </div>
       </form>
 
       <section class="relations-panel">
-        <div v-if="state.success.value" class="relations-alert success">{{ state.success.value }}</div>
+        <div v-if="state.success.value" class="relations-alert success">
+          {{ state.success.value }}
+        </div>
         <h2>Current leases</h2>
         <p v-if="leases.length === 0" class="muted">No leases are linked yet.</p>
         <table v-else>
@@ -220,7 +231,9 @@ onMounted(() => {
             <tr v-for="lease in leases" :key="lease.leaseId">
               <td>{{ lease.residentFullName || lease.residentName || lease.residentIdCode }}</td>
               <td>{{ lease.leaseRoleLabel }}</td>
-              <td>{{ lease.startDate }} <span v-if="lease.endDate">- {{ lease.endDate }}</span></td>
+              <td>
+                {{ lease.startDate }} <span v-if="lease.endDate">- {{ lease.endDate }}</span>
+              </td>
               <td class="actions">
                 <button type="button" @click="startEdit(lease)">Edit</button>
                 <button type="button" class="danger" @click="deleteTarget = lease">Delete</button>

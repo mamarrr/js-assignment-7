@@ -12,13 +12,19 @@ const props = defineProps<{
 const metricGroups = () =>
   Object.entries(props.dashboard).filter(([, value]) => {
     const list = asArray(value)
-    return list.length > 0 && list.every((item) => 'label' in asRecord(item) && 'value' in asRecord(item))
+    return (
+      list.length > 0 &&
+      list.every((item) => 'label' in asRecord(item) && 'value' in asRecord(item))
+    )
   })
 
 const listGroups = () =>
   Object.entries(props.dashboard).filter(([, value]) => {
     const list = asArray(value)
-    return list.length > 0 && !list.every((item) => 'label' in asRecord(item) && 'value' in asRecord(item))
+    return (
+      list.length > 0 &&
+      !list.every((item) => 'label' in asRecord(item) && 'value' in asRecord(item))
+    )
   })
 </script>
 
@@ -38,7 +44,11 @@ const listGroups = () =>
     <section v-for="[name, metrics] in metricGroups()" :key="name" class="card">
       <h2>{{ name }}</h2>
       <div class="metrics">
-        <div v-for="metric in asArray(metrics)" :key="String(asRecord(metric).label)" class="metric">
+        <div
+          v-for="metric in asArray(metrics)"
+          :key="String(asRecord(metric).label)"
+          class="metric"
+        >
           <span>{{ displayValue(asRecord(metric).label) }}</span>
           <strong>{{ displayValue(asRecord(metric).value) }}</strong>
         </div>
@@ -48,9 +58,19 @@ const listGroups = () =>
     <section v-for="[name, rows] in listGroups()" :key="name" class="card">
       <h2>{{ name }}</h2>
       <div class="list">
-        <article v-for="row in asArray(rows).slice(0, 6)" :key="JSON.stringify(row)" class="list-row">
-          <strong>{{ displayValue(asRecord(row).title ?? asRecord(row).name ?? asRecord(row).label) }}</strong>
-          <span>{{ displayValue(asRecord(row).supportingText ?? asRecord(row).statusLabel ?? asRecord(row).createdAt) }}</span>
+        <article
+          v-for="row in asArray(rows).slice(0, 6)"
+          :key="JSON.stringify(row)"
+          class="list-row"
+        >
+          <strong>{{
+            displayValue(asRecord(row).title ?? asRecord(row).name ?? asRecord(row).label)
+          }}</strong>
+          <span>{{
+            displayValue(
+              asRecord(row).supportingText ?? asRecord(row).statusLabel ?? asRecord(row).createdAt,
+            )
+          }}</span>
         </article>
       </div>
     </section>
@@ -144,4 +164,3 @@ h2 {
   padding-bottom: 0.6rem;
 }
 </style>
-

@@ -14,7 +14,9 @@ defineProps<{
   <div v-if="loading" class="hierarchy-state" role="status">Loading...</div>
 
   <section v-else-if="error" class="hierarchy-alert hierarchy-alert-error" role="alert">
-    <strong>{{ error.status === 403 ? 'Access denied' : error.status === 404 ? 'Not found' : error.title }}</strong>
+    <strong>{{
+      error.status === 403 ? 'Access denied' : error.status === 404 ? 'Not found' : error.title
+    }}</strong>
     <p>{{ error.message }}</p>
     <details v-if="error.traceId">
       <summary>Technical details</summary>
@@ -51,4 +53,3 @@ defineProps<{
   color: #5d687a;
 }
 </style>
-

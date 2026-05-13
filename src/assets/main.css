@@ -15,7 +15,7 @@
   --app-sidebar: #101a36;
   --app-sidebar-hover: #223561;
   --app-sidebar-active: #2e4b8d;
-  font-family: Inter, "Segoe UI", Roboto, Arial, sans-serif;
+  font-family: Inter, 'Segoe UI', Roboto, Arial, sans-serif;
 }
 
 * {
@@ -218,7 +218,7 @@ textarea {
 }
 
 .breadcrumbs li:not(:last-child)::after {
-  content: "/";
+  content: '/';
   margin-left: 0.35rem;
   color: #94a3b8;
 }

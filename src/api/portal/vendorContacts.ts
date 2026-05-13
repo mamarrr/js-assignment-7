@@ -28,7 +28,11 @@ export const vendorContactsApi = {
     portalApi.post<VendorContactListDto>(`${vendorContactsBase}/attach`, scope, body),
   createAndAttach: (scope: VendorContactScope, body: CreateAndAttachVendorContactDto) =>
     portalApi.post<VendorContactListDto>(`${vendorContactsBase}/create`, scope, body),
-  updateAssignment: (scope: VendorContactScope, vendorContactId: string, body: VendorContactAssignmentDto) =>
+  updateAssignment: (
+    scope: VendorContactScope,
+    vendorContactId: string,
+    body: VendorContactAssignmentDto,
+  ) =>
     portalApi.put<VendorContactListDto>(vendorContactItemBase, { ...scope, vendorContactId }, body),
   deleteAssignment: (scope: VendorContactScope, vendorContactId: string) =>
     portalApi.delete<VendorContactListDto>(vendorContactItemBase, { ...scope, vendorContactId }),

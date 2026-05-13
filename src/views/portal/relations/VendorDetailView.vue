@@ -49,8 +49,12 @@ onMounted(() => {
       </div>
       <nav class="actions">
         <RouterLink :to="`/companies/${companySlug}/vendors/${vendorId}/edit`">Edit</RouterLink>
-        <RouterLink :to="`/companies/${companySlug}/vendors/${vendorId}/categories`">Categories</RouterLink>
-        <RouterLink :to="`/companies/${companySlug}/vendors/${vendorId}/contacts`">Contacts</RouterLink>
+        <RouterLink :to="`/companies/${companySlug}/vendors/${vendorId}/categories`"
+          >Categories</RouterLink
+        >
+        <RouterLink :to="`/companies/${companySlug}/vendors/${vendorId}/contacts`"
+          >Contacts</RouterLink
+        >
       </nav>
     </header>
 
@@ -94,9 +98,15 @@ onMounted(() => {
         </div>
       </div>
       <div class="actions">
-        <RouterLink :to="`/companies/${companySlug}/vendors/${vendorId}/categories`">Manage categories</RouterLink>
-        <RouterLink :to="`/companies/${companySlug}/vendors/${vendorId}/contacts`">Manage contacts</RouterLink>
-        <RouterLink :to="`/companies/${companySlug}/tickets?vendorId=${vendorId}`">View tickets</RouterLink>
+        <RouterLink :to="`/companies/${companySlug}/vendors/${vendorId}/categories`"
+          >Manage categories</RouterLink
+        >
+        <RouterLink :to="`/companies/${companySlug}/vendors/${vendorId}/contacts`"
+          >Manage contacts</RouterLink
+        >
+        <RouterLink :to="`/companies/${companySlug}/tickets?vendorId=${vendorId}`"
+          >View tickets</RouterLink
+        >
         <button class="danger" type="button" @click="deleteOpen = true">Delete vendor</button>
       </div>
     </section>
@@ -105,8 +115,8 @@ onMounted(() => {
       <form method="dialog" @submit.prevent="deleteVendor">
         <h2>Delete vendor</h2>
         <p>
-          Confirm deletion of {{ vendor?.name }}. Vendors with tickets, scheduled work, contacts, or category
-          assignments cannot be deleted.
+          Confirm deletion of {{ vendor?.name }}. Vendors with tickets, scheduled work, contacts, or
+          category assignments cannot be deleted.
         </p>
         <label>
           Confirmation registry code
@@ -116,12 +126,20 @@ onMounted(() => {
             :placeholder="String(vendor?.registryCode || '')"
             required
           />
-          <small v-if="expectedRegistryCode">Type {{ expectedRegistryCode }} to enable deletion.</small>
+          <small v-if="expectedRegistryCode"
+            >Type {{ expectedRegistryCode }} to enable deletion.</small
+          >
           <small>{{ fieldError(state.error.value, 'confirmationRegistryCode') }}</small>
         </label>
-        <div v-if="state.error.value" class="relations-alert danger">{{ apiMessage(state.error.value) }}</div>
+        <div v-if="state.error.value" class="relations-alert danger">
+          {{ apiMessage(state.error.value) }}
+        </div>
         <div class="actions">
-          <button :disabled="state.pending.value || !deleteConfirmationMatches" class="danger" type="submit">
+          <button
+            :disabled="state.pending.value || !deleteConfirmationMatches"
+            class="danger"
+            type="submit"
+          >
             {{ state.pending.value ? 'Deleting...' : 'Delete' }}
           </button>
           <button type="button" @click="deleteOpen = false">Cancel</button>

@@ -2,7 +2,12 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import AppConfirmationDialog from '@/components/AppConfirmationDialog.vue'
-import { ticketsApi, ticketLifecycle, type TicketDetailsDto, type TicketTransitionAvailabilityDto } from '@/api/portal/tickets'
+import {
+  ticketsApi,
+  ticketLifecycle,
+  type TicketDetailsDto,
+  type TicketTransitionAvailabilityDto,
+} from '@/api/portal/tickets'
 import { useNotificationStore } from '@/stores/notifications'
 import { formatDateTime, useOperationState, usePortalRouteParams } from './operationView'
 
@@ -19,9 +24,15 @@ const deleteConfirmation = ref('')
 const blockingReasons = computed(
   () => transition.value?.blockingReasons ?? ticket.value?.transitionBlockingReasons ?? [],
 )
-const canAdvance = computed(() => transition.value?.canAdvance ?? ticket.value?.canAdvanceStatus ?? false)
-const nextStatusLabel = computed(() => transition.value?.nextStatusLabel ?? ticket.value?.nextStatusLabel)
-const normalizedStatus = computed(() => String(ticket.value?.statusCode ?? ticket.value?.statusLabel ?? '').toLowerCase())
+const canAdvance = computed(
+  () => transition.value?.canAdvance ?? ticket.value?.canAdvanceStatus ?? false,
+)
+const nextStatusLabel = computed(
+  () => transition.value?.nextStatusLabel ?? ticket.value?.nextStatusLabel,
+)
+const normalizedStatus = computed(() =>
+  String(ticket.value?.statusCode ?? ticket.value?.statusLabel ?? '').toLowerCase(),
+)
 const canDelete = computed(() => deleteConfirmation.value === 'DELETE')
 
 const statusMatches = (step: string) => {
@@ -88,7 +99,10 @@ onMounted(load)
     <section v-if="error" class="alert danger" role="alert">
       <strong>{{ error.title }}</strong>
       <p>{{ error.message }}</p>
-      <details v-if="error.traceId"><summary>Technical details</summary>Trace ID: {{ error.traceId }}</details>
+      <details v-if="error.traceId">
+        <summary>Technical details</summary>
+        Trace ID: {{ error.traceId }}
+      </details>
     </section>
 
     <template v-if="ticket">
@@ -103,10 +117,17 @@ onMounted(load)
           </div>
         </div>
         <div class="actions">
-          <button v-if="nextStatusLabel && canAdvance" :disabled="saving" @click="advanceOpen = true">
+          <button
+            v-if="nextStatusLabel && canAdvance"
+            :disabled="saving"
+            @click="advanceOpen = true"
+          >
             Advance to {{ nextStatusLabel }}
           </button>
-          <RouterLink :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/edit`">Edit</RouterLink>
+          <RouterLink
+            :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/edit`"
+            >Edit</RouterLink
+          >
         </div>
       </header>
 
@@ -118,7 +139,12 @@ onMounted(load)
       </section>
 
       <section class="panel lifecycle">
-        <span v-for="step in ticketLifecycle" :key="step" :class="{ active: statusMatches(step) }">{{ step }}</span>
+        <span
+          v-for="step in ticketLifecycle"
+          :key="step"
+          :class="{ active: statusMatches(step) }"
+          >{{ step }}</span
+        >
       </section>
 
       <div class="grid">
@@ -129,19 +155,27 @@ onMounted(load)
         <section class="panel">
           <h2>Dates</h2>
           <dl>
-            <dt>Created</dt><dd>{{ formatDateTime(ticket.createdAt) }}</dd>
-            <dt>Due</dt><dd>{{ formatDateTime(ticket.dueAt) }}</dd>
-            <dt>Closed</dt><dd>{{ formatDateTime(ticket.closedAt) }}</dd>
+            <dt>Created</dt>
+            <dd>{{ formatDateTime(ticket.createdAt) }}</dd>
+            <dt>Due</dt>
+            <dd>{{ formatDateTime(ticket.dueAt) }}</dd>
+            <dt>Closed</dt>
+            <dd>{{ formatDateTime(ticket.closedAt) }}</dd>
           </dl>
         </section>
         <section class="panel">
           <h2>Context</h2>
           <dl>
-            <dt>Customer</dt><dd>{{ ticket.customerName || '-' }}</dd>
-            <dt>Property</dt><dd>{{ ticket.propertyName || '-' }}</dd>
-            <dt>Unit</dt><dd>{{ ticket.unitNr || '-' }}</dd>
-            <dt>Resident</dt><dd>{{ ticket.residentName || '-' }}</dd>
-            <dt>Vendor</dt><dd>{{ ticket.vendorName || '-' }}</dd>
+            <dt>Customer</dt>
+            <dd>{{ ticket.customerName || '-' }}</dd>
+            <dt>Property</dt>
+            <dd>{{ ticket.propertyName || '-' }}</dd>
+            <dt>Unit</dt>
+            <dd>{{ ticket.unitNr || '-' }}</dd>
+            <dt>Resident</dt>
+            <dd>{{ ticket.residentName || '-' }}</dd>
+            <dt>Vendor</dt>
+            <dd>{{ ticket.vendorName || '-' }}</dd>
           </dl>
         </section>
       </div>
@@ -153,21 +187,42 @@ onMounted(load)
             <p class="muted">Vendor work scheduled for this ticket.</p>
           </div>
           <div class="actions">
-            <RouterLink :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work`">View scheduled work</RouterLink>
+            <RouterLink
+              :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work`"
+              >View scheduled work</RouterLink
+            >
           </div>
         </div>
-        <p v-if="(ticket.scheduledWork ?? []).length === 0" class="muted">No scheduled work has been added yet.</p>
+        <p v-if="(ticket.scheduledWork ?? []).length === 0" class="muted">
+          No scheduled work has been added yet.
+        </p>
         <table v-else>
-          <thead><tr><th>Vendor</th><th>Status</th><th>Scheduled start</th><th>Scheduled end</th><th></th></tr></thead>
+          <thead>
+            <tr>
+              <th>Vendor</th>
+              <th>Status</th>
+              <th>Scheduled start</th>
+              <th>Scheduled end</th>
+              <th></th>
+            </tr>
+          </thead>
           <tbody>
             <tr v-for="work in ticket.scheduledWork" :key="work.scheduledWorkId">
               <td>{{ work.vendorName || '-' }}</td>
-              <td><span class="badge">{{ work.workStatusLabel || '-' }}</span></td>
+              <td>
+                <span class="badge">{{ work.workStatusLabel || '-' }}</span>
+              </td>
               <td>{{ formatDateTime(work.scheduledStart) }}</td>
               <td>{{ formatDateTime(work.scheduledEnd) }}</td>
               <td>
-                <RouterLink :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${work.scheduledWorkId}`">Details</RouterLink>
-                <RouterLink :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${work.scheduledWorkId}/work-logs`">Work logs</RouterLink>
+                <RouterLink
+                  :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${work.scheduledWorkId}`"
+                  >Details</RouterLink
+                >
+                <RouterLink
+                  :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${work.scheduledWorkId}/work-logs`"
+                  >Work logs</RouterLink
+                >
               </td>
             </tr>
           </tbody>
@@ -193,15 +248,15 @@ onMounted(load)
       <dialog :open="deleteOpen" class="ticket-dialog">
         <form method="dialog" @submit.prevent="deleteTicket">
           <h2>Delete ticket</h2>
-          <p>
-            This deletes the ticket record. Type DELETE to confirm this destructive action.
-          </p>
+          <p>This deletes the ticket record. Type DELETE to confirm this destructive action.</p>
           <label>
             Confirmation
             <input v-model="deleteConfirmation" autocomplete="off" />
           </label>
           <div class="actions">
-            <button type="button" class="secondary" :disabled="saving" @click="deleteOpen = false">Cancel</button>
+            <button type="button" class="secondary" :disabled="saving" @click="deleteOpen = false">
+              Cancel
+            </button>
             <button type="submit" class="danger-button" :disabled="saving || !canDelete">
               {{ saving ? 'Deleting...' : 'Delete ticket' }}
             </button>
@@ -213,31 +268,146 @@ onMounted(load)
 </template>
 
 <style scoped>
-.operation-page { display: grid; gap: 1rem; }
-.operation-header, .section-header { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
-.panel { border: 1px solid #d0d5dd; border-radius: 8px; padding: 1rem; background: #fff; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
-.eyebrow, .muted { color: #667085; }
-.eyebrow { margin: 0 0 .25rem; text-transform: uppercase; font-size: .75rem; font-weight: 700; }
-.badges, .actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
-.badge, .lifecycle span { display: inline-block; border: 1px solid #b2ddff; background: #eff8ff; border-radius: 999px; padding: .15rem .5rem; }
-.lifecycle { display: flex; flex-wrap: wrap; gap: .5rem; }
-.lifecycle .active { background: #155eef; color: #fff; border-color: #155eef; }
-dl { display: grid; grid-template-columns: 7rem 1fr; gap: .5rem; }
-dt { font-weight: 700; }
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: .7rem; border-bottom: 1px solid #eaecf0; text-align: left; }
-button, a { border-radius: 6px; padding: .5rem .75rem; }
-button { background: #155eef; color: #fff; border: 1px solid #155eef; }
-.danger-zone button, .danger-button { background: #b42318; border-color: #b42318; color: #fff; }
-.secondary { background: #fff; color: #344054; border-color: #98a2b3; }
-.alert { border-radius: 8px; padding: .8rem; }
-.danger { background: #fef3f2; border: 1px solid #fecdca; }
-.success { background: #ecfdf3; border: 1px solid #abefc6; }
-.warning { background: #fffaeb; border: 1px solid #fedf89; }
-.ticket-dialog { border: 1px solid #d0d5dd; border-radius: 8px; padding: 1rem; max-width: 28rem; width: calc(100% - 2rem); position: fixed; inset: 50% auto auto 50%; transform: translate(-50%, -50%); z-index: 20; box-shadow: 0 24px 48px rgb(16 24 40 / .2); }
-.ticket-dialog::backdrop { background: rgb(16 24 40 / .35); }
-.ticket-dialog form { display: grid; gap: .9rem; }
-.ticket-dialog label { display: grid; gap: .35rem; font-weight: 600; }
-.ticket-dialog input { border: 1px solid #98a2b3; border-radius: 6px; padding: .5rem .7rem; font: inherit; }
+.operation-page {
+  display: grid;
+  gap: 1rem;
+}
+.operation-header,
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.panel {
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff;
+}
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+.eyebrow,
+.muted {
+  color: #667085;
+}
+.eyebrow {
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.badges,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+.badge,
+.lifecycle span {
+  display: inline-block;
+  border: 1px solid #b2ddff;
+  background: #eff8ff;
+  border-radius: 999px;
+  padding: 0.15rem 0.5rem;
+}
+.lifecycle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.lifecycle .active {
+  background: #155eef;
+  color: #fff;
+  border-color: #155eef;
+}
+dl {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 0.5rem;
+}
+dt {
+  font-weight: 700;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  padding: 0.7rem;
+  border-bottom: 1px solid #eaecf0;
+  text-align: left;
+}
+button,
+a {
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+}
+button {
+  background: #155eef;
+  color: #fff;
+  border: 1px solid #155eef;
+}
+.danger-zone button,
+.danger-button {
+  background: #b42318;
+  border-color: #b42318;
+  color: #fff;
+}
+.secondary {
+  background: #fff;
+  color: #344054;
+  border-color: #98a2b3;
+}
+.alert {
+  border-radius: 8px;
+  padding: 0.8rem;
+}
+.danger {
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+}
+.success {
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
+}
+.warning {
+  background: #fffaeb;
+  border: 1px solid #fedf89;
+}
+.ticket-dialog {
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 1rem;
+  max-width: 28rem;
+  width: calc(100% - 2rem);
+  position: fixed;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  z-index: 20;
+  box-shadow: 0 24px 48px rgb(16 24 40 / 0.2);
+}
+.ticket-dialog::backdrop {
+  background: rgb(16 24 40 / 0.35);
+}
+.ticket-dialog form {
+  display: grid;
+  gap: 0.9rem;
+}
+.ticket-dialog label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+.ticket-dialog input {
+  border: 1px solid #98a2b3;
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  font: inherit;
+}
 </style>

@@ -44,12 +44,15 @@ const persistAuth = (state: PersistedAuthState) => {
   window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(state))
 }
 
-const extractAccessToken = (response: JWTResponse) => response.jwt ?? response.accessToken ?? response.token
+const extractAccessToken = (response: JWTResponse) =>
+  response.jwt ?? response.accessToken ?? response.token
 
 const clearWorkspaceStateIfPresent = () => {
   const pinia = getActivePinia() as { _s?: Map<string, unknown> } | undefined
   const store = pinia?._s?.get('workspace') ?? pinia?._s?.get('workspaces')
-  const maybeStore = store as { clear?: () => void; clearSelectedWorkspace?: () => void; $reset?: () => void } | undefined
+  const maybeStore = store as
+    | { clear?: () => void; clearSelectedWorkspace?: () => void; $reset?: () => void }
+    | undefined
 
   if (typeof maybeStore?.clearSelectedWorkspace === 'function') {
     maybeStore.clearSelectedWorkspace()

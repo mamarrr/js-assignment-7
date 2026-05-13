@@ -36,7 +36,9 @@ const form = reactive({
 })
 
 const options = computed(() => bootstrap.value.options ?? {})
-const summaryErrors = computed(() => fieldErrors(error.value?.fieldErrors ?? {}, '', 'model', 'Model', '$'))
+const summaryErrors = computed(() =>
+  fieldErrors(error.value?.fieldErrors ?? {}, '', 'model', 'Model', '$'),
+)
 
 const optionQuery = () => ({
   CustomerId: emptyToNull(form.customerId),
@@ -125,8 +127,13 @@ const submit = async () => {
         })
       : await ticketsApi.create(params.companySlug.value, body)
 
-    notifications.push({ tone: 'success', title: isEdit.value ? 'Ticket updated.' : 'Ticket created.' })
-    await router.push(`/companies/${params.companySlug.value}/tickets/${saved.ticketId ?? params.ticketId.value}`)
+    notifications.push({
+      tone: 'success',
+      title: isEdit.value ? 'Ticket updated.' : 'Ticket created.',
+    })
+    await router.push(
+      `/companies/${params.companySlug.value}/tickets/${saved.ticketId ?? params.ticketId.value}`,
+    )
   } catch (caught) {
     capture(caught)
   } finally {
@@ -150,7 +157,10 @@ onMounted(load)
       <ul v-if="summaryErrors.length > 0">
         <li v-for="message in summaryErrors" :key="message">{{ message }}</li>
       </ul>
-      <details v-if="error.traceId"><summary>Technical details</summary>Trace ID: {{ error.traceId }}</details>
+      <details v-if="error.traceId">
+        <summary>Technical details</summary>
+        Trace ID: {{ error.traceId }}
+      </details>
     </section>
     <p v-if="loading">Loading ticket form...</p>
 
@@ -158,96 +168,198 @@ onMounted(load)
       <label>
         Ticket number
         <input v-model="form.ticketNr" />
-        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'ticketNr', 'TicketNr')" :key="message">{{ message }}</small>
+        <small
+          v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'ticketNr', 'TicketNr')"
+          :key="message"
+          >{{ message }}</small
+        >
       </label>
       <label class="wide">
         Title
         <input v-model="form.title" />
-        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'title', 'Title')" :key="message">{{ message }}</small>
+        <small
+          v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'title', 'Title')"
+          :key="message"
+          >{{ message }}</small
+        >
       </label>
       <label class="full">
         Description
         <textarea v-model="form.description" rows="5" />
-        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'description', 'Description')" :key="message">{{ message }}</small>
+        <small
+          v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'description', 'Description')"
+          :key="message"
+          >{{ message }}</small
+        >
       </label>
 
       <label>
         Category
         <select v-model="form.ticketCategoryId" @change="refreshOptions">
           <option value="">Select category</option>
-          <option v-for="option in options.categories" :key="optionValue(option)" :value="optionValue(option)">
+          <option
+            v-for="option in options.categories"
+            :key="optionValue(option)"
+            :value="optionValue(option)"
+          >
             {{ optionLabel(option) }}
           </option>
         </select>
-        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'ticketCategoryId', 'TicketCategoryId')" :key="message">{{ message }}</small>
+        <small
+          v-for="message in fieldErrors(
+            error?.fieldErrors ?? {},
+            'ticketCategoryId',
+            'TicketCategoryId',
+          )"
+          :key="message"
+          >{{ message }}</small
+        >
       </label>
 
       <label v-if="isEdit">
         Status
         <select v-model="form.ticketStatusId">
           <option value="">Select status</option>
-          <option v-for="option in options.statuses" :key="optionValue(option)" :value="optionValue(option)">
+          <option
+            v-for="option in options.statuses"
+            :key="optionValue(option)"
+            :value="optionValue(option)"
+          >
             {{ optionLabel(option) }}
           </option>
         </select>
-        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'ticketStatusId', 'TicketStatusId')" :key="message">{{ message }}</small>
+        <small
+          v-for="message in fieldErrors(
+            error?.fieldErrors ?? {},
+            'ticketStatusId',
+            'TicketStatusId',
+          )"
+          :key="message"
+          >{{ message }}</small
+        >
       </label>
 
       <label>
         Priority
         <select v-model="form.ticketPriorityId">
           <option value="">Select priority</option>
-          <option v-for="option in options.priorities" :key="optionValue(option)" :value="optionValue(option)">
+          <option
+            v-for="option in options.priorities"
+            :key="optionValue(option)"
+            :value="optionValue(option)"
+          >
             {{ optionLabel(option) }}
           </option>
         </select>
-        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'ticketPriorityId', 'TicketPriorityId')" :key="message">{{ message }}</small>
+        <small
+          v-for="message in fieldErrors(
+            error?.fieldErrors ?? {},
+            'ticketPriorityId',
+            'TicketPriorityId',
+          )"
+          :key="message"
+          >{{ message }}</small
+        >
       </label>
 
       <label>
         Customer
         <select v-model="form.customerId" @change="onCustomerChanged">
           <option value="">Select customer</option>
-          <option v-for="option in options.customers" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option>
+          <option
+            v-for="option in options.customers"
+            :key="optionValue(option)"
+            :value="optionValue(option)"
+          >
+            {{ optionLabel(option) }}
+          </option>
         </select>
-        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'customerId', 'CustomerId')" :key="message">{{ message }}</small>
+        <small
+          v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'customerId', 'CustomerId')"
+          :key="message"
+          >{{ message }}</small
+        >
       </label>
       <label>
         Property
         <select v-model="form.propertyId" @change="onPropertyChanged">
           <option value="">Select property</option>
-          <option v-for="option in options.properties" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option>
+          <option
+            v-for="option in options.properties"
+            :key="optionValue(option)"
+            :value="optionValue(option)"
+          >
+            {{ optionLabel(option) }}
+          </option>
         </select>
-        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'propertyId', 'PropertyId')" :key="message">{{ message }}</small>
+        <small
+          v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'propertyId', 'PropertyId')"
+          :key="message"
+          >{{ message }}</small
+        >
       </label>
       <label>
         Unit
         <select v-model="form.unitId" @change="refreshOptions">
           <option value="">Select unit</option>
-          <option v-for="option in options.units" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option>
+          <option
+            v-for="option in options.units"
+            :key="optionValue(option)"
+            :value="optionValue(option)"
+          >
+            {{ optionLabel(option) }}
+          </option>
         </select>
-        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'unitId', 'UnitId')" :key="message">{{ message }}</small>
+        <small
+          v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'unitId', 'UnitId')"
+          :key="message"
+          >{{ message }}</small
+        >
       </label>
       <label>
         Resident
         <select v-model="form.residentId" @change="refreshOptions">
           <option value="">Select resident</option>
-          <option v-for="option in options.residents" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option>
+          <option
+            v-for="option in options.residents"
+            :key="optionValue(option)"
+            :value="optionValue(option)"
+          >
+            {{ optionLabel(option) }}
+          </option>
         </select>
-        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'residentId', 'ResidentId')" :key="message">{{ message }}</small>
+        <small
+          v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'residentId', 'ResidentId')"
+          :key="message"
+          >{{ message }}</small
+        >
       </label>
       <label>
         Vendor
         <select v-model="form.vendorId">
           <option value="">Select vendor</option>
-          <option v-for="option in options.vendors" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option>
+          <option
+            v-for="option in options.vendors"
+            :key="optionValue(option)"
+            :value="optionValue(option)"
+          >
+            {{ optionLabel(option) }}
+          </option>
         </select>
-        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'vendorId', 'VendorId')" :key="message">{{ message }}</small>
+        <small
+          v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'vendorId', 'VendorId')"
+          :key="message"
+          >{{ message }}</small
+        >
       </label>
       <label>
         Due at
         <input v-model="form.dueAt" type="datetime-local" />
-        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'dueAt', 'DueAt')" :key="message">{{ message }}</small>
+        <small
+          v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'dueAt', 'DueAt')"
+          :key="message"
+          >{{ message }}</small
+        >
       </label>
 
       <div class="actions full">
@@ -259,19 +371,78 @@ onMounted(load)
 </template>
 
 <style scoped>
-.operation-page { display: grid; gap: 1rem; }
-.eyebrow { margin: 0 0 .25rem; color: #667085; text-transform: uppercase; font-size: .75rem; font-weight: 700; }
-.panel { border: 1px solid #d0d5dd; border-radius: 8px; padding: 1rem; background: #fff; }
-.form-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-.wide { grid-column: span 2; }
-.full { grid-column: 1 / -1; }
-label { display: grid; gap: .35rem; font-weight: 600; }
-input, select, textarea, button { border: 1px solid #98a2b3; border-radius: 6px; padding: .5rem .7rem; font: inherit; }
-small { color: #b42318; }
-button { background: #155eef; color: #fff; border-color: #155eef; }
-.actions { display: flex; gap: .75rem; align-items: center; }
-.alert { border-radius: 8px; padding: .8rem; }
-.danger { background: #fef3f2; border: 1px solid #fecdca; }
-.success { background: #ecfdf3; border: 1px solid #abefc6; }
-@media (max-width: 800px) { .form-grid, .wide { grid-template-columns: 1fr; grid-column: 1 / -1; } }
+.operation-page {
+  display: grid;
+  gap: 1rem;
+}
+.eyebrow {
+  margin: 0 0 0.25rem;
+  color: #667085;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.panel {
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+.wide {
+  grid-column: span 2;
+}
+.full {
+  grid-column: 1 / -1;
+}
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+input,
+select,
+textarea,
+button {
+  border: 1px solid #98a2b3;
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  font: inherit;
+}
+small {
+  color: #b42318;
+}
+button {
+  background: #155eef;
+  color: #fff;
+  border-color: #155eef;
+}
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+.alert {
+  border-radius: 8px;
+  padding: 0.8rem;
+}
+.danger {
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+}
+.success {
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
+}
+@media (max-width: 800px) {
+  .form-grid,
+  .wide {
+    grid-template-columns: 1fr;
+    grid-column: 1 / -1;
+  }
+}
 </style>

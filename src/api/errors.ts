@@ -20,7 +20,11 @@ const asString = (value: unknown): string | undefined =>
 
 const normalizeFieldErrors = (payload: unknown): FieldErrors => {
   if (!isRecord(payload)) return {}
-  const source = isRecord(payload.errors) ? payload.errors : isRecord(payload.Errors) ? payload.Errors : undefined
+  const source = isRecord(payload.errors)
+    ? payload.errors
+    : isRecord(payload.Errors)
+      ? payload.Errors
+      : undefined
   if (!source) return {}
 
   return Object.fromEntries(
@@ -34,7 +38,10 @@ const normalizeFieldErrors = (payload: unknown): FieldErrors => {
 export const normalizeApiError = (status: number, payload: unknown): ApiError => {
   const record = isRecord(payload) ? payload : {}
   const title =
-    asString(record.title) ?? asString(record.error) ?? asString(record.message) ?? `Request failed (${status})`
+    asString(record.title) ??
+    asString(record.error) ??
+    asString(record.message) ??
+    `Request failed (${status})`
   const detail = asString(record.detail) ?? asString(record.message) ?? title
 
   return {
@@ -54,4 +61,3 @@ export const isApiError = (error: unknown): error is ApiError =>
 export const isUnauthorized = (error: unknown) => isApiError(error) && error.status === 401
 export const isForbidden = (error: unknown) => isApiError(error) && error.status === 403
 export const isNotFound = (error: unknown) => isApiError(error) && error.status === 404
-

@@ -25,9 +25,10 @@ const state = useAsyncState()
 const page = ref<ResidentContactListDto | null>(null)
 const editing = ref<ResidentContactItemDto | null>(null)
 const deleteTarget = ref<ResidentContactItemDto | null>(null)
-const actionTarget = ref<{ contact: ResidentContactItemDto; action: 'set-primary' | 'confirm' | 'unconfirm' } | null>(
-  null,
-)
+const actionTarget = ref<{
+  contact: ResidentContactItemDto
+  action: 'set-primary' | 'confirm' | 'unconfirm'
+} | null>(null)
 const editForm = createContactAssignmentForm()
 const attachForm = createContactAssignmentForm()
 const createForm = createNewContactForm()
@@ -105,13 +106,17 @@ const saveEdit = async () => {
   if (!editing.value?.residentContactId) return
   await state.run(
     async () => {
-      page.value = await residentContactsApi.updateAssignment(scope.value, editing.value!.residentContactId!, {
-        contactId: editForm.contactId,
-        validFrom: editForm.validFrom,
-        validTo: editForm.validTo || null,
-        confirmed: editForm.confirmed,
-        isPrimary: editForm.isPrimary,
-      })
+      page.value = await residentContactsApi.updateAssignment(
+        scope.value,
+        editing.value!.residentContactId!,
+        {
+          contactId: editForm.contactId,
+          validFrom: editForm.validFrom,
+          validTo: editForm.validTo || null,
+          confirmed: editForm.confirmed,
+          isPrimary: editForm.isPrimary,
+        },
+      )
       editing.value = null
     },
     { pending: true, success: 'Contact assignment updated.' },
@@ -139,7 +144,10 @@ const performConfirmedAction = async () => {
     return
   }
   if (target.action === 'confirm') {
-    await perform(() => residentContactsApi.confirm(scope.value, target.contact.residentContactId!), 'Contact confirmed.')
+    await perform(
+      () => residentContactsApi.confirm(scope.value, target.contact.residentContactId!),
+      'Contact confirmed.',
+    )
     return
   }
   await perform(
@@ -152,7 +160,10 @@ const deleteAssignment = async () => {
   if (!deleteTarget.value?.residentContactId) return
   await state.run(
     async () => {
-      page.value = await residentContactsApi.deleteAssignment(scope.value, deleteTarget.value!.residentContactId!)
+      page.value = await residentContactsApi.deleteAssignment(
+        scope.value,
+        deleteTarget.value!.residentContactId!,
+      )
       deleteTarget.value = null
     },
     { pending: true, success: 'Contact assignment deleted.' },
@@ -172,12 +183,16 @@ onMounted(() => {
         <h1>Resident contacts</h1>
         <span>{{ page?.residentName || residentIdCode }}</span>
       </div>
-      <RouterLink :to="`/companies/${companySlug}/residents/${residentIdCode}`">Back to resident</RouterLink>
+      <RouterLink :to="`/companies/${companySlug}/residents/${residentIdCode}`"
+        >Back to resident</RouterLink
+      >
     </header>
 
     <section v-if="state.loading.value" class="relations-panel">Loading contacts...</section>
     <section v-else>
-      <div v-if="state.success.value" class="relations-alert success">{{ state.success.value }}</div>
+      <div v-if="state.success.value" class="relations-alert success">
+        {{ state.success.value }}
+      </div>
       <div v-if="state.error.value" class="relations-alert danger">
         {{ apiMessage(state.error.value) }}
         <details v-if="traceId(state.error.value)">
@@ -216,9 +231,13 @@ onMounted(() => {
             </label>
           </div>
           <small>{{ fieldError(state.error.value, 'confirmed') }}</small>
-          <label class="relations-check"><input v-model="attachForm.confirmed" type="checkbox" /> Confirmed</label>
+          <label class="relations-check"
+            ><input v-model="attachForm.confirmed" type="checkbox" /> Confirmed</label
+          >
           <small>{{ fieldError(state.error.value, 'isPrimary') }}</small>
-          <label class="relations-check"><input v-model="attachForm.isPrimary" type="checkbox" /> Primary</label>
+          <label class="relations-check"
+            ><input v-model="attachForm.isPrimary" type="checkbox" /> Primary</label
+          >
           <button :disabled="state.pending.value" type="submit">Attach contact</button>
         </form>
 
@@ -260,8 +279,12 @@ onMounted(() => {
               <small>{{ fieldError(state.error.value, 'validTo') }}</small>
             </label>
           </div>
-          <label class="relations-check"><input v-model="createForm.confirmed" type="checkbox" /> Confirmed</label>
-          <label class="relations-check"><input v-model="createForm.isPrimary" type="checkbox" /> Primary</label>
+          <label class="relations-check"
+            ><input v-model="createForm.confirmed" type="checkbox" /> Confirmed</label
+          >
+          <label class="relations-check"
+            ><input v-model="createForm.isPrimary" type="checkbox" /> Primary</label
+          >
           <button :disabled="state.pending.value" type="submit">Create and attach contact</button>
         </form>
       </div>
@@ -290,7 +313,9 @@ onMounted(() => {
                   {{ contact.confirmed ? 'Active' : 'Inactive' }}
                 </mark>
               </td>
-              <td>{{ contact.validFrom }} <span v-if="contact.validTo">- {{ contact.validTo }}</span></td>
+              <td>
+                {{ contact.validFrom }} <span v-if="contact.validTo">- {{ contact.validTo }}</span>
+              </td>
               <td class="actions">
                 <button type="button" @click="startEdit(contact)">Edit</button>
                 <button
@@ -305,7 +330,9 @@ onMounted(() => {
                   v-if="contact.residentContactId"
                   type="button"
                   :disabled="state.pending.value"
-                  @click="actionTarget = { contact, action: contact.confirmed ? 'unconfirm' : 'confirm' }"
+                  @click="
+                    actionTarget = { contact, action: contact.confirmed ? 'unconfirm' : 'confirm' }
+                  "
                 >
                   {{ contact.confirmed ? 'Unconfirm' : 'Confirm' }}
                 </button>
@@ -332,8 +359,12 @@ onMounted(() => {
             <small>{{ fieldError(state.error.value, 'validTo') }}</small>
           </label>
         </div>
-        <label class="relations-check"><input v-model="editForm.confirmed" type="checkbox" /> Confirmed</label>
-        <label class="relations-check"><input v-model="editForm.isPrimary" type="checkbox" /> Primary</label>
+        <label class="relations-check"
+          ><input v-model="editForm.confirmed" type="checkbox" /> Confirmed</label
+        >
+        <label class="relations-check"
+          ><input v-model="editForm.isPrimary" type="checkbox" /> Primary</label
+        >
         <div class="actions">
           <button :disabled="state.pending.value" type="submit">Save</button>
           <button type="button" @click="editing = null">Cancel</button>
@@ -369,7 +400,10 @@ onMounted(() => {
     <dialog :open="Boolean(deleteTarget)" class="relations-dialog">
       <form method="dialog" @submit.prevent="deleteAssignment">
         <h2>Delete contact assignment</h2>
-        <p>Remove this contact from the resident? The shared contact record remains available for the company.</p>
+        <p>
+          Remove this contact from the resident? The shared contact record remains available for the
+          company.
+        </p>
         <div class="actions">
           <button :disabled="state.pending.value" class="danger" type="submit">Delete</button>
           <button type="button" @click="deleteTarget = null">Cancel</button>

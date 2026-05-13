@@ -71,7 +71,10 @@ const submit = (pending?: boolean) => {
         :disabled="pending"
         @input="update(modelValue, field.key, ($event.target as HTMLInputElement).value)"
       />
-      <small v-if="fieldErrorsFor(error?.fieldErrors, field.key).length" class="hierarchy-field-error">
+      <small
+        v-if="fieldErrorsFor(error?.fieldErrors, field.key).length"
+        class="hierarchy-field-error"
+      >
         {{ fieldErrorsFor(error?.fieldErrors, field.key).join(' ') }}
       </small>
     </label>

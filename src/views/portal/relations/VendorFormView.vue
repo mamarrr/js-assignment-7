@@ -35,7 +35,9 @@ const submit = async () => {
       const saved = isEdit.value
         ? await vendorsApi.update(companySlug.value, vendorId.value, body)
         : await vendorsApi.create(companySlug.value, body)
-      await router.push(`/companies/${companySlug.value}/vendors/${saved.id ?? saved.vendorId ?? vendorId.value}`)
+      await router.push(
+        `/companies/${companySlug.value}/vendors/${saved.id ?? saved.vendorId ?? vendorId.value}`,
+      )
     },
     { pending: true, success: isEdit.value ? 'Vendor updated.' : 'Vendor created.' },
   )
@@ -67,17 +69,28 @@ onMounted(() => {
       </div>
       <label>
         Name
-        <input v-model="form.name" :aria-invalid="Boolean(fieldError(state.error.value, 'name'))" required />
+        <input
+          v-model="form.name"
+          :aria-invalid="Boolean(fieldError(state.error.value, 'name'))"
+          required
+        />
         <small>{{ fieldError(state.error.value, 'name') }}</small>
       </label>
       <label>
         Registry code
-        <input v-model="form.registryCode" :aria-invalid="Boolean(fieldError(state.error.value, 'registryCode'))" />
+        <input
+          v-model="form.registryCode"
+          :aria-invalid="Boolean(fieldError(state.error.value, 'registryCode'))"
+        />
         <small>{{ fieldError(state.error.value, 'registryCode') }}</small>
       </label>
       <label>
         Notes
-        <textarea v-model="form.notes" :aria-invalid="Boolean(fieldError(state.error.value, 'notes'))" rows="4" />
+        <textarea
+          v-model="form.notes"
+          :aria-invalid="Boolean(fieldError(state.error.value, 'notes'))"
+          rows="4"
+        />
         <small>{{ fieldError(state.error.value, 'notes') }}</small>
       </label>
       <button :disabled="state.pending.value || state.loading.value" type="submit">

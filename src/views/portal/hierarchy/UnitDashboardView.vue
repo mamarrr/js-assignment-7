@@ -20,7 +20,12 @@ const unitSlug = () => routeParam(route.params.unitSlug)
 
 onMounted(async () => {
   try {
-    dashboard.value = await unitsApi.dashboard(companySlug(), customerSlug(), propertySlug(), unitSlug())
+    dashboard.value = await unitsApi.dashboard(
+      companySlug(),
+      customerSlug(),
+      propertySlug(),
+      unitSlug(),
+    )
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
   } finally {
@@ -35,11 +40,19 @@ onMounted(async () => {
       :dashboard="dashboard"
       :title="text(dashboard.context ?? dashboard, ['unitNr', 'unitName', 'name'], unitSlug())"
       :links="[
-        { label: 'Profile', to: `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units/${unitSlug()}/profile` },
-        { label: 'Leases', to: `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units/${unitSlug()}/leases` },
-        { label: 'Tickets', to: `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units/${unitSlug()}/tickets` },
+        {
+          label: 'Profile',
+          to: `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units/${unitSlug()}/profile`,
+        },
+        {
+          label: 'Leases',
+          to: `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units/${unitSlug()}/leases`,
+        },
+        {
+          label: 'Tickets',
+          to: `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units/${unitSlug()}/tickets`,
+        },
       ]"
     />
   </HierarchyState>
 </template>
-

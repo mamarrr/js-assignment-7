@@ -256,7 +256,7 @@ export interface ContextTicketsDto extends ApiRecord {
   residentName?: string
 }
 
-export interface ManagementTicketsDto extends ContextTicketsDto {}
+export type ManagementTicketsDto = ContextTicketsDto
 
 export interface TicketScheduledWorkSummaryDto extends ApiRecord {
   scheduledWorkId?: string

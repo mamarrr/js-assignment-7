@@ -31,7 +31,10 @@ const unitSlug = () => routeParam(route.params.unitSlug)
 
 onMounted(async () => {
   try {
-    form.value = seedForm(fields, await unitsApi.profile(companySlug(), customerSlug(), propertySlug(), unitSlug()))
+    form.value = seedForm(
+      fields,
+      await unitsApi.profile(companySlug(), customerSlug(), propertySlug(), unitSlug()),
+    )
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
   } finally {
@@ -45,7 +48,13 @@ const save = async () => {
   try {
     form.value = seedForm(
       fields,
-      await unitsApi.updateProfile(companySlug(), customerSlug(), propertySlug(), unitSlug(), buildPayload(fields, form.value)),
+      await unitsApi.updateProfile(
+        companySlug(),
+        customerSlug(),
+        propertySlug(),
+        unitSlug(),
+        buildPayload(fields, form.value),
+      ),
     )
     notifications.push({ tone: 'success', title: 'Unit profile updated.' })
   } catch (caught) {
@@ -63,7 +72,9 @@ const remove = async () => {
       deleteConfirmation: String(deleteForm.value.deleteConfirmation ?? ''),
     })
     notifications.push({ tone: 'success', title: 'Unit deleted.' })
-    await router.push(`/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units`)
+    await router.push(
+      `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units`,
+    )
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
   } finally {
@@ -75,8 +86,25 @@ const remove = async () => {
 <template>
   <HierarchyState :loading="loading" :error="error">
     <div class="grid">
-      <RecordForm v-model="form" title="Unit profile" :fields="fields" :pending="pending" :error="error" submit-label="Save profile" @submit="save" />
-      <RecordForm v-model="deleteForm" title="Delete unit" :fields="[{ key: 'deleteConfirmation', label: 'Delete confirmation' }]" :pending="pending" :error="null" submit-label="Delete unit" danger @submit="remove" />
+      <RecordForm
+        v-model="form"
+        title="Unit profile"
+        :fields="fields"
+        :pending="pending"
+        :error="error"
+        submit-label="Save profile"
+        @submit="save"
+      />
+      <RecordForm
+        v-model="deleteForm"
+        title="Delete unit"
+        :fields="[{ key: 'deleteConfirmation', label: 'Delete confirmation' }]"
+        :pending="pending"
+        :error="null"
+        submit-label="Delete unit"
+        danger
+        @submit="remove"
+      />
     </div>
   </HierarchyState>
 </template>

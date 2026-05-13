@@ -43,7 +43,14 @@ const contextPath = (context: TicketContext) => {
   return `${ticketsBase}/residents/{residentIdCode}`
 }
 
-export const ticketLifecycle = ['Created', 'Assigned', 'Scheduled', 'In Progress', 'Completed', 'Closed']
+export const ticketLifecycle = [
+  'Created',
+  'Assigned',
+  'Scheduled',
+  'In Progress',
+  'Completed',
+  'Closed',
+]
 
 export const ticketsApi = {
   list: (companySlug: string, query?: TicketFilterDto) =>

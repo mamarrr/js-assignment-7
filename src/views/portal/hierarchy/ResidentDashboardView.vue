@@ -31,14 +31,24 @@ onMounted(async () => {
   <HierarchyState :loading="loading" :error="error">
     <DashboardSummary
       :dashboard="dashboard"
-      :title="text(dashboard.context ?? dashboard, ['residentName', 'fullName', 'name'], residentIdCode())"
+      :title="
+        text(dashboard.context ?? dashboard, ['residentName', 'fullName', 'name'], residentIdCode())
+      "
       :links="[
-        { label: 'Profile', to: `/companies/${companySlug()}/residents/${residentIdCode()}/profile` },
-        { label: 'Contacts', to: `/companies/${companySlug()}/residents/${residentIdCode()}/contacts` },
+        {
+          label: 'Profile',
+          to: `/companies/${companySlug()}/residents/${residentIdCode()}/profile`,
+        },
+        {
+          label: 'Contacts',
+          to: `/companies/${companySlug()}/residents/${residentIdCode()}/contacts`,
+        },
         { label: 'Leases', to: `/companies/${companySlug()}/residents/${residentIdCode()}/leases` },
-        { label: 'Tickets', to: `/companies/${companySlug()}/residents/${residentIdCode()}/tickets` },
+        {
+          label: 'Tickets',
+          to: `/companies/${companySlug()}/residents/${residentIdCode()}/tickets`,
+        },
       ]"
     />
   </HierarchyState>
 </template>
-

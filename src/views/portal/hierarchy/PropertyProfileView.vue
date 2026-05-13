@@ -31,7 +31,10 @@ const propertySlug = () => routeParam(route.params.propertySlug)
 
 onMounted(async () => {
   try {
-    form.value = seedForm(fields, await propertiesApi.profile(companySlug(), customerSlug(), propertySlug()))
+    form.value = seedForm(
+      fields,
+      await propertiesApi.profile(companySlug(), customerSlug(), propertySlug()),
+    )
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
   } finally {
@@ -45,7 +48,12 @@ const save = async () => {
   try {
     form.value = seedForm(
       fields,
-      await propertiesApi.updateProfile(companySlug(), customerSlug(), propertySlug(), buildPayload(fields, form.value)),
+      await propertiesApi.updateProfile(
+        companySlug(),
+        customerSlug(),
+        propertySlug(),
+        buildPayload(fields, form.value),
+      ),
     )
     notifications.push({ tone: 'success', title: 'Property profile updated.' })
   } catch (caught) {
@@ -75,8 +83,25 @@ const remove = async () => {
 <template>
   <HierarchyState :loading="loading" :error="error">
     <div class="grid">
-      <RecordForm v-model="form" title="Property profile" :fields="fields" :pending="pending" :error="error" submit-label="Save profile" @submit="save" />
-      <RecordForm v-model="deleteForm" title="Delete property" :fields="[{ key: 'deleteConfirmation', label: 'Delete confirmation' }]" :pending="pending" :error="null" submit-label="Delete property" danger @submit="remove" />
+      <RecordForm
+        v-model="form"
+        title="Property profile"
+        :fields="fields"
+        :pending="pending"
+        :error="error"
+        submit-label="Save profile"
+        @submit="save"
+      />
+      <RecordForm
+        v-model="deleteForm"
+        title="Delete property"
+        :fields="[{ key: 'deleteConfirmation', label: 'Delete confirmation' }]"
+        :pending="pending"
+        :error="null"
+        submit-label="Delete property"
+        danger
+        @submit="remove"
+      />
     </div>
   </HierarchyState>
 </template>

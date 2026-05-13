@@ -37,7 +37,12 @@ defineProps<{
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in rows" :key="String(row.id ?? row.slug ?? row.customerSlug ?? row.unitSlug ?? JSON.stringify(row))">
+          <tr
+            v-for="row in rows"
+            :key="
+              String(row.id ?? row.slug ?? row.customerSlug ?? row.unitSlug ?? JSON.stringify(row))
+            "
+          >
             <td v-for="column in columns" :key="column.key">{{ displayValue(row[column.key]) }}</td>
             <td v-if="rowTo" class="hierarchy-actions">
               <RouterLink :to="rowTo(row)">{{ actionLabel ?? 'Open' }}</RouterLink>
@@ -119,4 +124,3 @@ th {
   text-align: right;
 }
 </style>
-

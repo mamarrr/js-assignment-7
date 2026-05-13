@@ -29,7 +29,14 @@ const optionValue = (option: LookupOptionDto) =>
   String(option.id ?? option.value ?? option.key ?? option.lookupId ?? option.roleId ?? '')
 
 const optionLabel = (option: LookupOptionDto) =>
-  String(option.label ?? option.name ?? option.text ?? option.displayName ?? option.code ?? optionValue(option))
+  String(
+    option.label ??
+      option.name ??
+      option.text ??
+      option.displayName ??
+      option.code ??
+      optionValue(option),
+  )
 
 const selectableRoles = computed(() => roles.value.filter((role) => optionValue(role)))
 
@@ -125,15 +132,26 @@ const submit = async () => {
       <form v-if="!loading" class="auth-form" novalidate @submit.prevent="submit">
         <label class="field">
           <span>Registry code</span>
-          <input v-model="form.registryCode" type="text" :aria-invalid="fieldErrors('registryCode').length > 0" />
+          <input
+            v-model="form.registryCode"
+            type="text"
+            :aria-invalid="fieldErrors('registryCode').length > 0"
+          />
           <AppFieldErrors :errors="fieldErrors('registryCode')" />
         </label>
 
         <label class="field">
           <span>Requested role</span>
-          <select v-model="form.requestedRoleId" :aria-invalid="fieldErrors('requestedRoleId').length > 0">
+          <select
+            v-model="form.requestedRoleId"
+            :aria-invalid="fieldErrors('requestedRoleId').length > 0"
+          >
             <option value="">Select role</option>
-            <option v-for="role in selectableRoles" :key="optionValue(role)" :value="optionValue(role)">
+            <option
+              v-for="role in selectableRoles"
+              :key="optionValue(role)"
+              :value="optionValue(role)"
+            >
               {{ optionLabel(role) }}
             </option>
           </select>
@@ -142,11 +160,19 @@ const submit = async () => {
 
         <label class="field">
           <span>Message</span>
-          <textarea v-model="form.message" rows="4" :aria-invalid="fieldErrors('message').length > 0" />
+          <textarea
+            v-model="form.message"
+            rows="4"
+            :aria-invalid="fieldErrors('message').length > 0"
+          />
           <AppFieldErrors :errors="fieldErrors('message')" />
         </label>
 
-        <AppFormActions submit-label="Submit join request" pending-label="Submitting..." :pending="pending">
+        <AppFormActions
+          submit-label="Submit join request"
+          pending-label="Submitting..."
+          :pending="pending"
+        >
           <RouterLink class="button button--secondary" to="/onboarding">Cancel</RouterLink>
         </AppFormActions>
       </form>

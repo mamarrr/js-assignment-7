@@ -4,7 +4,15 @@ import { useRouter } from 'vue-router'
 import AppErrorAlert from '@/components/AppErrorAlert.vue'
 import AppFieldErrors from '@/components/AppFieldErrors.vue'
 import { workLogsApi, type WorkLogFormDto } from '@/api/portal/workLogs'
-import { emptyToNull, fieldErrors, fromDateTimeLocal, summaryErrors, toDateTimeLocal, useOperationState, usePortalRouteParams } from './operationView'
+import {
+  emptyToNull,
+  fieldErrors,
+  fromDateTimeLocal,
+  summaryErrors,
+  toDateTimeLocal,
+  useOperationState,
+  usePortalRouteParams,
+} from './operationView'
 
 const router = useRouter()
 const params = usePortalRouteParams()
@@ -44,7 +52,11 @@ const load = async () => {
             params.scheduledWorkId.value,
             params.workLogId.value,
           )
-        : await workLogsApi.form(params.companySlug.value, params.ticketId.value, params.scheduledWorkId.value),
+        : await workLogsApi.form(
+            params.companySlug.value,
+            params.ticketId.value,
+            params.scheduledWorkId.value,
+          ),
     )
   } catch (caught) {
     capture(caught)
@@ -76,7 +88,12 @@ const submit = async () => {
         body,
       )
     } else {
-      await workLogsApi.create(params.companySlug.value, params.ticketId.value, params.scheduledWorkId.value, body)
+      await workLogsApi.create(
+        params.companySlug.value,
+        params.ticketId.value,
+        params.scheduledWorkId.value,
+        body,
+      )
     }
     notifySuccess(isEdit.value ? 'Work log updated.' : 'Work log created.')
     await router.push(
@@ -105,34 +122,138 @@ onMounted(load)
       <ul v-if="summary.length > 0" class="alert danger full">
         <li v-for="message in summary" :key="message">{{ message }}</li>
       </ul>
-      <label>Work start<input v-model="form.workStart" type="datetime-local" :aria-invalid="fieldErrors(fieldErrorMap, 'workStart', 'WorkStart').length > 0" /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'workStart', 'WorkStart')" /></label>
-      <label>Work end<input v-model="form.workEnd" type="datetime-local" :aria-invalid="fieldErrors(fieldErrorMap, 'workEnd', 'WorkEnd').length > 0" /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'workEnd', 'WorkEnd')" /></label>
-      <label :class="{ full: !bootstrap.canViewCosts }">Hours<input v-model="form.hours" type="number" min="0" step="0.25" :aria-invalid="fieldErrors(fieldErrorMap, 'hours', 'Hours').length > 0" /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'hours', 'Hours')" /></label>
+      <label
+        >Work start<input
+          v-model="form.workStart"
+          type="datetime-local"
+          :aria-invalid="
+            fieldErrors(fieldErrorMap, 'workStart', 'WorkStart').length > 0
+          " /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'workStart', 'WorkStart')"
+      /></label>
+      <label
+        >Work end<input
+          v-model="form.workEnd"
+          type="datetime-local"
+          :aria-invalid="
+            fieldErrors(fieldErrorMap, 'workEnd', 'WorkEnd').length > 0
+          " /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'workEnd', 'WorkEnd')"
+      /></label>
+      <label :class="{ full: !bootstrap.canViewCosts }"
+        >Hours<input
+          v-model="form.hours"
+          type="number"
+          min="0"
+          step="0.25"
+          :aria-invalid="fieldErrors(fieldErrorMap, 'hours', 'Hours').length > 0" /><AppFieldErrors
+          :errors="fieldErrors(fieldErrorMap, 'hours', 'Hours')"
+      /></label>
       <template v-if="bootstrap.canViewCosts">
-        <label>Material cost<input v-model="form.materialCost" type="number" min="0" step="0.01" :aria-invalid="fieldErrors(fieldErrorMap, 'materialCost', 'MaterialCost').length > 0" /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'materialCost', 'MaterialCost')" /></label>
-        <label>Labor cost<input v-model="form.laborCost" type="number" min="0" step="0.01" :aria-invalid="fieldErrors(fieldErrorMap, 'laborCost', 'LaborCost').length > 0" /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'laborCost', 'LaborCost')" /></label>
+        <label
+          >Material cost<input
+            v-model="form.materialCost"
+            type="number"
+            min="0"
+            step="0.01"
+            :aria-invalid="
+              fieldErrors(fieldErrorMap, 'materialCost', 'MaterialCost').length > 0
+            " /><AppFieldErrors
+            :errors="fieldErrors(fieldErrorMap, 'materialCost', 'MaterialCost')"
+        /></label>
+        <label
+          >Labor cost<input
+            v-model="form.laborCost"
+            type="number"
+            min="0"
+            step="0.01"
+            :aria-invalid="
+              fieldErrors(fieldErrorMap, 'laborCost', 'LaborCost').length > 0
+            " /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'laborCost', 'LaborCost')"
+        /></label>
       </template>
-      <label class="full">Description<textarea v-model="form.description" rows="4" :aria-invalid="fieldErrors(fieldErrorMap, 'description', 'Description').length > 0" /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'description', 'Description')" /></label>
+      <label class="full"
+        >Description<textarea
+          v-model="form.description"
+          rows="4"
+          :aria-invalid="
+            fieldErrors(fieldErrorMap, 'description', 'Description').length > 0
+          " /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'description', 'Description')"
+      /></label>
       <div class="actions full">
-        <button type="submit" :disabled="saving">{{ saving ? 'Saving...' : 'Save work log' }}</button>
-        <RouterLink :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${params.scheduledWorkId.value}/work-logs`">Cancel</RouterLink>
+        <button type="submit" :disabled="saving">
+          {{ saving ? 'Saving...' : 'Save work log' }}
+        </button>
+        <RouterLink
+          :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${params.scheduledWorkId.value}/work-logs`"
+          >Cancel</RouterLink
+        >
       </div>
     </form>
   </main>
 </template>
 
 <style scoped>
-.operation-page { display: grid; gap: 1rem; }
-.eyebrow, .muted { color: #667085; }
-.eyebrow { margin: 0 0 .25rem; text-transform: uppercase; font-size: .75rem; font-weight: 700; }
-.panel { border: 1px solid #d0d5dd; border-radius: 8px; padding: 1rem; background: #fff; }
-.form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
-.full { grid-column: 1 / -1; }
-label { display: grid; gap: .35rem; font-weight: 600; }
-input, textarea, button { border: 1px solid #98a2b3; border-radius: 6px; padding: .5rem .7rem; font: inherit; }
-button { background: #155eef; color: #fff; border-color: #155eef; }
-.actions { display: flex; gap: .75rem; align-items: center; }
-.alert { border-radius: 8px; padding: .8rem; }
-.danger { background: #fef3f2; border: 1px solid #fecdca; }
-@media (max-width: 800px) { .form-grid { grid-template-columns: 1fr; } }
+.operation-page {
+  display: grid;
+  gap: 1rem;
+}
+.eyebrow,
+.muted {
+  color: #667085;
+}
+.eyebrow {
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.panel {
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.full {
+  grid-column: 1 / -1;
+}
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 600;
+}
+input,
+textarea,
+button {
+  border: 1px solid #98a2b3;
+  border-radius: 6px;
+  padding: 0.5rem 0.7rem;
+  font: inherit;
+}
+button {
+  background: #155eef;
+  color: #fff;
+  border-color: #155eef;
+}
+.actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+.alert {
+  border-radius: 8px;
+  padding: 0.8rem;
+}
+.danger {
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+}
+@media (max-width: 800px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

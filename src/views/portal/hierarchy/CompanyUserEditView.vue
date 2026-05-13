@@ -32,7 +32,9 @@ const membershipId = () => routeParam(route.params.membershipId)
 onMounted(async () => {
   try {
     const roles = await companyUsersApi.roles(companySlug())
-    fields.value = fields.value.map((field) => (field.key === 'roleId' ? { ...field, options: roles } : field))
+    fields.value = fields.value.map((field) =>
+      field.key === 'roleId' ? { ...field, options: roles } : field,
+    )
     details.value = await companyUsersApi.edit(companySlug(), membershipId())
     form.value = seedForm(fields.value, details.value)
   } catch (caught) {
@@ -48,7 +50,11 @@ const save = async () => {
   try {
     form.value = seedForm(
       fields.value,
-      await companyUsersApi.update(companySlug(), membershipId(), buildPayload(fields.value, form.value)),
+      await companyUsersApi.update(
+        companySlug(),
+        membershipId(),
+        buildPayload(fields.value, form.value),
+      ),
     )
     notifications.push({ tone: 'success', title: 'Company user updated.' })
   } catch (caught) {
@@ -88,7 +94,15 @@ const remove = async () => {
           Transfer ownership
         </RouterLink>
       </section>
-      <RecordForm v-model="form" title="Edit company user" :fields="fields" :pending="pending" :error="error" submit-label="Save user" @submit="save" />
+      <RecordForm
+        v-model="form"
+        title="Edit company user"
+        :fields="fields"
+        :pending="pending"
+        :error="error"
+        submit-label="Save user"
+        @submit="save"
+      />
       <section class="danger-card">
         <h2>Remove user</h2>
         <p>Removing a user revokes their company access.</p>

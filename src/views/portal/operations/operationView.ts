@@ -4,7 +4,8 @@ import { isApiError, type ApiError, type FieldErrors } from '@/api/errors'
 import { useNotificationStore } from '@/stores/notifications'
 import type { LookupOptionDto } from '@/types/api'
 
-export const asRouteString = (value: unknown) => (Array.isArray(value) ? String(value[0] ?? '') : String(value ?? ''))
+export const asRouteString = (value: unknown) =>
+  Array.isArray(value) ? String(value[0] ?? '') : String(value ?? '')
 
 export const usePortalRouteParams = () => {
   const route = useRoute()
@@ -33,7 +34,8 @@ export const useOperationState = () => {
       : {
           status: 0,
           title: 'Request failed',
-          message: caught instanceof Error ? caught.message : 'The operation could not be completed.',
+          message:
+            caught instanceof Error ? caught.message : 'The operation could not be completed.',
           fieldErrors: {},
           raw: caught,
         }
@@ -62,14 +64,16 @@ export const toDateTimeLocal = (value?: string | null) => {
   return local.toISOString().slice(0, 16)
 }
 
-export const fromDateTimeLocal = (value?: string | null) => (value ? new Date(value).toISOString() : null)
+export const fromDateTimeLocal = (value?: string | null) =>
+  value ? new Date(value).toISOString() : null
 
 export const formatMoney = (value?: number | null) =>
   typeof value === 'number'
     ? new Intl.NumberFormat(undefined, { style: 'currency', currency: 'EUR' }).format(value)
     : '-'
 
-export const formatNumber = (value?: number | null) => (typeof value === 'number' ? String(value) : '-')
+export const formatNumber = (value?: number | null) =>
+  typeof value === 'number' ? String(value) : '-'
 
 export const fieldErrors = (errors: FieldErrors, ...names: string[]) =>
   names.flatMap((name) => {
@@ -94,6 +98,14 @@ export const optionValue = (option: LookupOptionDto) =>
   String(option.id ?? option.value ?? option.key ?? option.code ?? option.lookupId ?? '')
 
 export const optionLabel = (option: LookupOptionDto) =>
-  String(option.label ?? option.name ?? option.text ?? option.displayName ?? option.code ?? optionValue(option))
+  String(
+    option.label ??
+      option.name ??
+      option.text ??
+      option.displayName ??
+      option.code ??
+      optionValue(option),
+  )
 
-export const emptyToNull = (value: string | null | undefined) => (value && value.length > 0 ? value : null)
+export const emptyToNull = (value: string | null | undefined) =>
+  value && value.length > 0 ? value : null

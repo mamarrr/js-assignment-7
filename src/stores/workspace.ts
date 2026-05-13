@@ -52,7 +52,8 @@ const persistWorkspace = (state: PersistedWorkspaceState) => {
 
 const toApiError = (error: unknown): ApiError | undefined => (isApiError(error) ? error : undefined)
 
-const firstString = (...values: unknown[]) => values.find((value): value is string => typeof value === 'string' && value.length > 0)
+const firstString = (...values: unknown[]) =>
+  values.find((value): value is string => typeof value === 'string' && value.length > 0)
 
 const normalizeAppPath = (path?: string) => {
   if (!path) return undefined
@@ -87,7 +88,11 @@ const clearTenantScopedStores = () => {
   const pinia = getActivePinia() as { _s?: Map<string, unknown> } | undefined
   pinia?._s?.forEach((store, id) => {
     if (['auth', 'workspace', 'notifications'].includes(id)) return
-    const maybeStore = store as { clearTenantState?: () => void; clear?: () => void; $reset?: () => void }
+    const maybeStore = store as {
+      clearTenantState?: () => void
+      clear?: () => void
+      $reset?: () => void
+    }
 
     if (typeof maybeStore.clearTenantState === 'function') {
       maybeStore.clearTenantState()
@@ -113,7 +118,9 @@ export const workspaceCompanySlug = (option?: WorkspaceOptionDto) =>
   firstString(option?.managementCompanySlug, option?.companySlug)
 
 export const workspaceRedirectPath = (redirect?: WorkspaceRedirectDto) => {
-  const explicitPath = normalizeAppPath(redirect?.path ?? redirect?.destination ?? redirect?.redirectUrl)
+  const explicitPath = normalizeAppPath(
+    redirect?.path ?? redirect?.destination ?? redirect?.redirectUrl,
+  )
   if (explicitPath) return explicitPath
 
   if (redirect?.companySlug) return `/companies/${redirect.companySlug}`
@@ -151,23 +158,34 @@ export const useWorkspaceStore = defineStore('workspace', {
     hasUsableWorkspace(): boolean {
       return Boolean(
         this.onboardingStatus?.hasWorkspaceContext ??
-          this.onboardingStatus?.hasUsableWorkspace ??
-          this.workspaceOptions.length > 0,
+        this.onboardingStatus?.hasUsableWorkspace ??
+        this.workspaceOptions.length > 0,
       )
     },
     canCreateManagementCompany: (state) =>
-      Boolean(state.onboardingStatus?.createManagementCompany ?? state.onboardingStatus?.canCreateManagementCompany),
+      Boolean(
+        state.onboardingStatus?.createManagementCompany ??
+        state.onboardingStatus?.canCreateManagementCompany,
+      ),
     canJoinManagementCompany: (state) =>
-      Boolean(state.onboardingStatus?.joinManagementCompany ?? state.onboardingStatus?.canJoinManagementCompany),
-    permissions: (state): WorkspaceOptionPermissionsDto => state.selectedWorkspace?.permissions ?? {},
+      Boolean(
+        state.onboardingStatus?.joinManagementCompany ??
+        state.onboardingStatus?.canJoinManagementCompany,
+      ),
+    permissions: (state): WorkspaceOptionPermissionsDto =>
+      state.selectedWorkspace?.permissions ?? {},
     selectedCompanySlug: (state) =>
-      firstString(state.selectedWorkspace?.managementCompanySlug, state.selectedWorkspace?.companySlug),
+      firstString(
+        state.selectedWorkspace?.managementCompanySlug,
+        state.selectedWorkspace?.companySlug,
+      ),
     workspaceForCompany(): (companySlug?: string) => WorkspaceOptionDto | undefined {
       return (companySlug?: string) =>
         this.workspaceOptions.find((option) => workspaceCompanySlug(option) === companySlug)
     },
     permissionsForCompany(): (companySlug?: string) => WorkspaceOptionPermissionsDto {
-      return (companySlug?: string) => this.workspaceForCompany(companySlug)?.permissions ?? this.permissions
+      return (companySlug?: string) =>
+        this.workspaceForCompany(companySlug)?.permissions ?? this.permissions
     },
     defaultPath(): string | undefined {
       return (

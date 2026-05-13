@@ -44,7 +44,8 @@ const parsePayload = async (response: Response) => {
 const execute = async <T>(path: string, options: ApiRequestOptions = {}): Promise<T> => {
   const headers = new Headers(options.headers)
   if (!headers.has('Accept')) headers.set('Accept', 'application/json')
-  if (options.body !== undefined && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+  if (options.body !== undefined && !headers.has('Content-Type'))
+    headers.set('Content-Type', 'application/json')
 
   const token = options.auth === false ? undefined : getToken()
   if (token) headers.set('Authorization', `Bearer ${token}`)
@@ -67,7 +68,10 @@ export const apiRequest = async <T>(path: string, options: ApiRequestOptions = {
   } catch (error) {
     const apiError = error as ApiError
     const shouldRefresh =
-      apiError.status === 401 && options.auth !== false && options.retryOnUnauthorized !== false && refreshHandler
+      apiError.status === 401 &&
+      options.auth !== false &&
+      options.retryOnUnauthorized !== false &&
+      refreshHandler
 
     if (!shouldRefresh) throw error
 
@@ -93,4 +97,3 @@ export const queryString = (params: Record<string, unknown>) => {
   const text = search.toString()
   return text ? `?${text}` : ''
 }
-

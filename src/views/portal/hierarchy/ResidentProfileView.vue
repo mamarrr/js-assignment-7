@@ -43,7 +43,11 @@ const save = async () => {
   try {
     form.value = seedForm(
       fields,
-      await residentsApi.updateProfile(companySlug(), residentIdCode(), buildPayload(fields, form.value)),
+      await residentsApi.updateProfile(
+        companySlug(),
+        residentIdCode(),
+        buildPayload(fields, form.value),
+      ),
     )
     notifications.push({ tone: 'success', title: 'Resident profile updated.' })
   } catch (caught) {
@@ -73,8 +77,25 @@ const remove = async () => {
 <template>
   <HierarchyState :loading="loading" :error="error">
     <div class="grid">
-      <RecordForm v-model="form" title="Resident profile" :fields="fields" :pending="pending" :error="error" submit-label="Save profile" @submit="save" />
-      <RecordForm v-model="deleteForm" title="Delete resident" :fields="[{ key: 'deleteConfirmation', label: 'Delete confirmation' }]" :pending="pending" :error="null" submit-label="Delete resident" danger @submit="remove" />
+      <RecordForm
+        v-model="form"
+        title="Resident profile"
+        :fields="fields"
+        :pending="pending"
+        :error="error"
+        submit-label="Save profile"
+        @submit="save"
+      />
+      <RecordForm
+        v-model="deleteForm"
+        title="Delete resident"
+        :fields="[{ key: 'deleteConfirmation', label: 'Delete confirmation' }]"
+        :pending="pending"
+        :error="null"
+        submit-label="Delete resident"
+        danger
+        @submit="remove"
+      />
     </div>
   </HierarchyState>
 </template>

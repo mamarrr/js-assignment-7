@@ -28,7 +28,11 @@ const form = ref(seedForm(fields))
 const companySlug = () => routeParam(route.params.companySlug)
 
 const load = async () => {
-  rows.value = pickFirstArray(await customersApi.list(companySlug()), ['customers', 'items', 'results'])
+  rows.value = pickFirstArray(await customersApi.list(companySlug()), [
+    'customers',
+    'items',
+    'results',
+  ])
 }
 
 onMounted(async () => {

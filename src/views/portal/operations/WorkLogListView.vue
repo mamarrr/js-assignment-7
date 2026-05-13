@@ -3,7 +3,13 @@ import { onMounted, ref } from 'vue'
 import AppConfirmationDialog from '@/components/AppConfirmationDialog.vue'
 import AppErrorAlert from '@/components/AppErrorAlert.vue'
 import { workLogsApi, type WorkLogDeleteModelDto, type WorkLogListDto } from '@/api/portal/workLogs'
-import { formatDateTime, formatMoney, formatNumber, useOperationState, usePortalRouteParams } from './operationView'
+import {
+  formatDateTime,
+  formatMoney,
+  formatNumber,
+  useOperationState,
+  usePortalRouteParams,
+} from './operationView'
 
 const params = usePortalRouteParams()
 const { loading, saving, error, success, capture, notifySuccess } = useOperationState()
@@ -16,7 +22,11 @@ const load = async () => {
   loading.value = true
   error.value = undefined
   try {
-    page.value = await workLogsApi.list(params.companySlug.value, params.ticketId.value, params.scheduledWorkId.value)
+    page.value = await workLogsApi.list(
+      params.companySlug.value,
+      params.ticketId.value,
+      params.scheduledWorkId.value,
+    )
   } catch (caught) {
     capture(caught)
   } finally {
@@ -29,7 +39,12 @@ const deleteLog = async (workLogId?: string) => {
   saving.value = true
   error.value = undefined
   try {
-    await workLogsApi.delete(params.companySlug.value, params.ticketId.value, params.scheduledWorkId.value, workLogId)
+    await workLogsApi.delete(
+      params.companySlug.value,
+      params.ticketId.value,
+      params.scheduledWorkId.value,
+      workLogId,
+    )
     notifySuccess('Work log deleted.')
     deleteOpen.value = false
     deleteTargetId.value = ''
@@ -73,24 +88,42 @@ onMounted(load)
         <h1>Work logs</h1>
         <p class="muted">{{ page?.vendorName }} - {{ page?.workStatusLabel }}</p>
       </div>
-      <RouterLink class="primary" :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${params.scheduledWorkId.value}/work-logs/new`">Add work log</RouterLink>
+      <RouterLink
+        class="primary"
+        :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${params.scheduledWorkId.value}/work-logs/new`"
+        >Add work log</RouterLink
+      >
     </header>
 
     <p v-if="success" class="alert success">{{ success }}</p>
     <AppErrorAlert v-if="error" :error="error" />
 
     <section class="panel totals">
-      <div><p class="eyebrow">Logs</p><strong>{{ page?.totals?.count ?? 0 }}</strong></div>
-      <div><p class="eyebrow">Hours</p><strong>{{ formatNumber(page?.totals?.hours) }}</strong></div>
+      <div>
+        <p class="eyebrow">Logs</p>
+        <strong>{{ page?.totals?.count ?? 0 }}</strong>
+      </div>
+      <div>
+        <p class="eyebrow">Hours</p>
+        <strong>{{ formatNumber(page?.totals?.hours) }}</strong>
+      </div>
       <template v-if="page?.canViewCosts">
-        <div><p class="eyebrow">Material cost</p><strong>{{ formatMoney(page?.totals?.materialCost) }}</strong></div>
-        <div><p class="eyebrow">Total cost</p><strong>{{ formatMoney(page?.totals?.totalCost) }}</strong></div>
+        <div>
+          <p class="eyebrow">Material cost</p>
+          <strong>{{ formatMoney(page?.totals?.materialCost) }}</strong>
+        </div>
+        <div>
+          <p class="eyebrow">Total cost</p>
+          <strong>{{ formatMoney(page?.totals?.totalCost) }}</strong>
+        </div>
       </template>
     </section>
 
     <section class="panel">
       <p v-if="loading">Loading work logs...</p>
-      <p v-else-if="(page?.items ?? []).length === 0" class="muted">No work logs have been added yet.</p>
+      <p v-else-if="(page?.items ?? []).length === 0" class="muted">
+        No work logs have been added yet.
+      </p>
       <table v-else>
         <thead>
           <tr>
@@ -112,7 +145,10 @@ onMounted(load)
             <td>{{ item.appUserName || '-' }}</td>
             <td>{{ item.description || '-' }}</td>
             <td class="actions">
-              <RouterLink :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${params.scheduledWorkId.value}/work-logs/${item.workLogId}/edit`">Edit</RouterLink>
+              <RouterLink
+                :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${params.scheduledWorkId.value}/work-logs/${item.workLogId}/edit`"
+                >Edit</RouterLink
+              >
               <button :disabled="saving" @click="openDelete(item.workLogId)">Delete</button>
             </td>
           </tr>
@@ -134,18 +170,78 @@ onMounted(load)
 </template>
 
 <style scoped>
-.operation-page { display: grid; gap: 1rem; }
-.operation-header { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
-.eyebrow, .muted { color: #667085; }
-.eyebrow { margin: 0 0 .25rem; text-transform: uppercase; font-size: .75rem; font-weight: 700; }
-.panel { border: 1px solid #d0d5dd; border-radius: 8px; padding: 1rem; background: #fff; overflow-x: auto; }
-.totals { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; }
-table { width: 100%; border-collapse: collapse; }
-th, td { padding: .7rem; border-bottom: 1px solid #eaecf0; text-align: left; vertical-align: top; }
-.primary { background: #155eef; color: #fff; border-radius: 6px; padding: .55rem .75rem; text-decoration: none; }
-.actions { display: flex; gap: .5rem; align-items: center; }
-button { background: #b42318; color: #fff; border: 1px solid #b42318; border-radius: 6px; padding: .4rem .65rem; }
-.alert { border-radius: 8px; padding: .8rem; }
-.danger { background: #fef3f2; border: 1px solid #fecdca; }
-.success { background: #ecfdf3; border: 1px solid #abefc6; }
+.operation-page {
+  display: grid;
+  gap: 1rem;
+}
+.operation-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+.eyebrow,
+.muted {
+  color: #667085;
+}
+.eyebrow {
+  margin: 0 0 0.25rem;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.panel {
+  border: 1px solid #d0d5dd;
+  border-radius: 8px;
+  padding: 1rem;
+  background: #fff;
+  overflow-x: auto;
+}
+.totals {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 1rem;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  padding: 0.7rem;
+  border-bottom: 1px solid #eaecf0;
+  text-align: left;
+  vertical-align: top;
+}
+.primary {
+  background: #155eef;
+  color: #fff;
+  border-radius: 6px;
+  padding: 0.55rem 0.75rem;
+  text-decoration: none;
+}
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+button {
+  background: #b42318;
+  color: #fff;
+  border: 1px solid #b42318;
+  border-radius: 6px;
+  padding: 0.4rem 0.65rem;
+}
+.alert {
+  border-radius: 8px;
+  padding: 0.8rem;
+}
+.danger {
+  background: #fef3f2;
+  border: 1px solid #fecdca;
+}
+.success {
+  background: #ecfdf3;
+  border: 1px solid #abefc6;
+}
 </style>

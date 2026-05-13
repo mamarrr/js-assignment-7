@@ -9,8 +9,7 @@ import type {
   UpdatePropertyProfileDto,
 } from '@/types/api'
 
-const propertiesBase =
-  '/api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties'
+const propertiesBase = '/api/v1/portal/companies/{companySlug}/customers/{customerSlug}/properties'
 const propertyBase = `${propertiesBase}/{propertySlug}`
 
 export const propertiesApi = {
@@ -64,4 +63,3 @@ export const propertiesApi = {
       query,
     ),
 }
-

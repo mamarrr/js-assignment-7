@@ -38,7 +38,9 @@ onMounted(() => {
       <p v-if="state.loading.value">Loading vendors...</p>
       <div v-else-if="asArray(vendors).length === 0" class="relations-empty">
         <strong>No vendors found</strong>
-        <p class="muted">Create the first vendor before assigning providers to tickets or scheduled work.</p>
+        <p class="muted">
+          Create the first vendor before assigning providers to tickets or scheduled work.
+        </p>
       </div>
       <table v-else>
         <thead>
@@ -63,9 +65,15 @@ onMounted(() => {
             <td>{{ vendor.assignedTicketCount ?? 0 }}</td>
             <td>{{ vendor.contactCount ?? 0 }}</td>
             <td class="actions">
-              <RouterLink :to="`/companies/${companySlug}/vendors/${vendor.vendorId}/edit`">Edit</RouterLink>
-              <RouterLink :to="`/companies/${companySlug}/vendors/${vendor.vendorId}/categories`">Categories</RouterLink>
-              <RouterLink :to="`/companies/${companySlug}/vendors/${vendor.vendorId}/contacts`">Contacts</RouterLink>
+              <RouterLink :to="`/companies/${companySlug}/vendors/${vendor.vendorId}/edit`"
+                >Edit</RouterLink
+              >
+              <RouterLink :to="`/companies/${companySlug}/vendors/${vendor.vendorId}/categories`"
+                >Categories</RouterLink
+              >
+              <RouterLink :to="`/companies/${companySlug}/vendors/${vendor.vendorId}/contacts`"
+                >Contacts</RouterLink
+              >
             </td>
           </tr>
         </tbody>

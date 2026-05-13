@@ -1,5 +1,11 @@
 import { portalApi } from './generic'
-import type { ApiRecord, WorkLogDeleteModelDto, WorkLogFormDto, WorkLogListDto, WorkLogRequestDto } from '@/types/api'
+import type {
+  ApiRecord,
+  WorkLogDeleteModelDto,
+  WorkLogFormDto,
+  WorkLogListDto,
+  WorkLogRequestDto,
+} from '@/types/api'
 
 export type { WorkLogDeleteModelDto, WorkLogFormDto, WorkLogListDto, WorkLogRequestDto }
 
@@ -11,9 +17,17 @@ export const workLogsApi = {
   list: (companySlug: string, ticketId: string, scheduledWorkId: string) =>
     portalApi.get<WorkLogListDto>(workLogsBase, { companySlug, ticketId, scheduledWorkId }),
   form: (companySlug: string, ticketId: string, scheduledWorkId: string) =>
-    portalApi.get<WorkLogFormDto>(`${workLogsBase}/form`, { companySlug, ticketId, scheduledWorkId }),
-  create: (companySlug: string, ticketId: string, scheduledWorkId: string, body: WorkLogRequestDto) =>
-    portalApi.post<ApiRecord>(workLogsBase, { companySlug, ticketId, scheduledWorkId }, body),
+    portalApi.get<WorkLogFormDto>(`${workLogsBase}/form`, {
+      companySlug,
+      ticketId,
+      scheduledWorkId,
+    }),
+  create: (
+    companySlug: string,
+    ticketId: string,
+    scheduledWorkId: string,
+    body: WorkLogRequestDto,
+  ) => portalApi.post<ApiRecord>(workLogsBase, { companySlug, ticketId, scheduledWorkId }, body),
   editForm: (companySlug: string, ticketId: string, scheduledWorkId: string, workLogId: string) =>
     portalApi.get<WorkLogFormDto>(`${workLogItemBase}/form`, {
       companySlug,
@@ -21,7 +35,12 @@ export const workLogsApi = {
       scheduledWorkId,
       workLogId,
     }),
-  deleteModel: (companySlug: string, ticketId: string, scheduledWorkId: string, workLogId: string) =>
+  deleteModel: (
+    companySlug: string,
+    ticketId: string,
+    scheduledWorkId: string,
+    workLogId: string,
+  ) =>
     portalApi.get<WorkLogDeleteModelDto>(`${workLogItemBase}/delete-model`, {
       companySlug,
       ticketId,

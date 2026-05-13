@@ -7,4 +7,3 @@ export const workspacesApi = {
     apiRequest<WorkspaceRedirectDto>('/api/v1/workspaces/select', { method: 'POST', body }),
   defaultRedirect: () => apiRequest<WorkspaceRedirectDto>('/api/v1/workspaces/default-redirect'),
 }
-

@@ -29,7 +29,12 @@ const cancel = (pending?: boolean) => {
       <h2 :id="`${title}-title`">{{ title }}</h2>
       <p>{{ message }}</p>
       <div class="dialog__actions">
-        <button class="button button--secondary" type="button" :disabled="pending" @click="cancel(pending)">
+        <button
+          class="button button--secondary"
+          type="button"
+          :disabled="pending"
+          @click="cancel(pending)"
+        >
           {{ cancelLabel ?? 'Cancel' }}
         </button>
         <button

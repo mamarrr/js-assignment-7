@@ -10,7 +10,8 @@ interface NavigationItem {
   requires?: 'canManageCompanyUsers'
 }
 
-const routeParam = (value: unknown) => (Array.isArray(value) ? String(value[0] ?? '') : String(value ?? ''))
+const routeParam = (value: unknown) =>
+  Array.isArray(value) ? String(value[0] ?? '') : String(value ?? '')
 
 const titleCase = (value: string) =>
   value
@@ -20,13 +21,20 @@ const titleCase = (value: string) =>
     .join(' ')
 
 const optionLabel = (option?: WorkspaceOptionDto) =>
-  option?.displayName ?? option?.name ?? option?.slug ?? option?.companySlug ?? option?.managementCompanySlug ?? 'Workspace'
+  option?.displayName ??
+  option?.name ??
+  option?.slug ??
+  option?.companySlug ??
+  option?.managementCompanySlug ??
+  'Workspace'
 
 export const usePortalShell = () => {
   const route = useRoute()
   const workspaceStore = useWorkspaceStore()
 
-  const companySlug = computed(() => routeParam(route.params.companySlug || workspaceStore.selectedCompanySlug))
+  const companySlug = computed(() =>
+    routeParam(route.params.companySlug || workspaceStore.selectedCompanySlug),
+  )
 
   const selectedCompanyName = computed(() => {
     const selected = workspaceStore.selectedWorkspace
@@ -69,7 +77,13 @@ export const usePortalShell = () => {
 
     if (path === companyBase) return [{ label: selectedCompanyName.value }]
 
-    if (path.includes('/profile') && !path.includes('/customers/') && !path.includes('/properties/') && !path.includes('/units/') && !path.includes('/residents/')) {
+    if (
+      path.includes('/profile') &&
+      !path.includes('/customers/') &&
+      !path.includes('/properties/') &&
+      !path.includes('/units/') &&
+      !path.includes('/residents/')
+    ) {
       return [...items, { label: 'Company profile' }]
     }
 
@@ -167,7 +181,10 @@ export const usePortalShell = () => {
   })
 
   const workspacePath = (option: WorkspaceOptionDto) => workspaceOptionPath(option) ?? '/workspaces'
-  const redirectPath = () => workspaceRedirectPath(workspaceStore.defaultRedirect) ?? workspaceStore.defaultPath ?? '/workspaces'
+  const redirectPath = () =>
+    workspaceRedirectPath(workspaceStore.defaultRedirect) ??
+    workspaceStore.defaultPath ??
+    '/workspaces'
 
   return {
     breadcrumbs,

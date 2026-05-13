@@ -8,10 +8,15 @@ import type {
   ScheduledWorkRequestDto,
 } from '@/types/api'
 
-export type { ScheduledWorkActionDto, ScheduledWorkDetailsDto, ScheduledWorkFormDto, ScheduledWorkListDto, ScheduledWorkRequestDto }
+export type {
+  ScheduledWorkActionDto,
+  ScheduledWorkDetailsDto,
+  ScheduledWorkFormDto,
+  ScheduledWorkListDto,
+  ScheduledWorkRequestDto,
+}
 
-const scheduledWorkBase =
-  '/api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work'
+const scheduledWorkBase = '/api/v1/portal/companies/{companySlug}/tickets/{ticketId}/scheduled-work'
 const scheduledWorkItemBase = `${scheduledWorkBase}/{scheduledWorkId}`
 
 export const scheduledWorkApi = {
@@ -33,7 +38,12 @@ export const scheduledWorkApi = {
       ticketId,
       scheduledWorkId,
     }),
-  update: (companySlug: string, ticketId: string, scheduledWorkId: string, body: ScheduledWorkRequestDto) =>
+  update: (
+    companySlug: string,
+    ticketId: string,
+    scheduledWorkId: string,
+    body: ScheduledWorkRequestDto,
+  ) =>
     portalApi.put<ScheduledWorkDetailsDto>(
       scheduledWorkItemBase,
       { companySlug, ticketId, scheduledWorkId },
@@ -41,18 +51,32 @@ export const scheduledWorkApi = {
     ),
   delete: (companySlug: string, ticketId: string, scheduledWorkId: string) =>
     portalApi.delete<ApiRecord>(scheduledWorkItemBase, { companySlug, ticketId, scheduledWorkId }),
-  start: (companySlug: string, ticketId: string, scheduledWorkId: string, body: ScheduledWorkActionDto) =>
+  start: (
+    companySlug: string,
+    ticketId: string,
+    scheduledWorkId: string,
+    body: ScheduledWorkActionDto,
+  ) =>
     portalApi.post<ApiRecord>(
       `${scheduledWorkItemBase}/start`,
       { companySlug, ticketId, scheduledWorkId },
       body,
     ),
-  complete: (companySlug: string, ticketId: string, scheduledWorkId: string, body: ScheduledWorkActionDto) =>
+  complete: (
+    companySlug: string,
+    ticketId: string,
+    scheduledWorkId: string,
+    body: ScheduledWorkActionDto,
+  ) =>
     portalApi.post<ApiRecord>(
       `${scheduledWorkItemBase}/complete`,
       { companySlug, ticketId, scheduledWorkId },
       body,
     ),
   cancel: (companySlug: string, ticketId: string, scheduledWorkId: string) =>
-    portalApi.post<ApiRecord>(`${scheduledWorkItemBase}/cancel`, { companySlug, ticketId, scheduledWorkId }),
+    portalApi.post<ApiRecord>(`${scheduledWorkItemBase}/cancel`, {
+      companySlug,
+      ticketId,
+      scheduledWorkId,
+    }),
 }

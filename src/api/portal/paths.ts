@@ -15,4 +15,3 @@ export const resolvePortalPath = (
   const path = template.replace(/\{(\w+)\}/g, (_, key: string) => value(params, key))
   return `${path}${query ? queryString(query) : ''}`
 }
-

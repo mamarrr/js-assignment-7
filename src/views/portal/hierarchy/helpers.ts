@@ -17,7 +17,8 @@ export interface ColumnConfig {
 export const asRecord = (value: unknown): ApiRecord =>
   typeof value === 'object' && value !== null ? (value as ApiRecord) : {}
 
-export const asArray = <T = ApiRecord>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : [])
+export const asArray = <T = ApiRecord>(value: unknown): T[] =>
+  Array.isArray(value) ? (value as T[]) : []
 
 export const pickFirstArray = <T = ApiRecord>(source: unknown, keys: string[]): T[] => {
   const record = asRecord(source)
@@ -55,7 +56,8 @@ export const displayValue = (value: unknown) => {
   return String(value)
 }
 
-export const routeParam = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value) ?? ''
+export const routeParam = (value: string | string[] | undefined) =>
+  (Array.isArray(value) ? value[0] : value) ?? ''
 
 export const buildPayload = (fields: FieldConfig[], form: ApiRecord) =>
   Object.fromEntries(fields.map((field) => [field.key, form[field.key] ?? '']))
@@ -65,7 +67,9 @@ export const seedForm = (fields: FieldConfig[], source?: ApiRecord): ApiRecord =
 
 export const labelForOption = (option: ApiRecord, valueKey = 'id', labelKey = 'label') => ({
   value: String(option[valueKey] ?? option.value ?? option.code ?? ''),
-  label: String(option[labelKey] ?? option.name ?? option.text ?? option.code ?? option[valueKey] ?? ''),
+  label: String(
+    option[labelKey] ?? option.name ?? option.text ?? option.code ?? option[valueKey] ?? '',
+  ),
 })
 
 export const fieldErrorsFor = (errors: Record<string, string[]> | undefined, key: string) => {
@@ -73,6 +77,8 @@ export const fieldErrorsFor = (errors: Record<string, string[]> | undefined, key
   const direct = errors[key]
   if (direct) return direct
 
-  const match = Object.entries(errors).find(([errorKey]) => errorKey.toLowerCase() === key.toLowerCase())
+  const match = Object.entries(errors).find(
+    ([errorKey]) => errorKey.toLowerCase() === key.toLowerCase(),
+  )
   return match?.[1] ?? []
 }

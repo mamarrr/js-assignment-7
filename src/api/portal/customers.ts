@@ -21,10 +21,17 @@ export const customersApi = {
   profile: (companySlug: string, customerSlug: string) =>
     portalApi.get<CustomerProfileDto>(`${customerBase}/profile`, { companySlug, customerSlug }),
   updateProfile: (companySlug: string, customerSlug: string, body: CustomerRequestDto) =>
-    portalApi.put<CustomerProfileDto>(`${customerBase}/profile`, { companySlug, customerSlug }, body),
+    portalApi.put<CustomerProfileDto>(
+      `${customerBase}/profile`,
+      { companySlug, customerSlug },
+      body,
+    ),
   deleteProfile: (companySlug: string, customerSlug: string, body: DeleteConfirmationDto) =>
     portalApi.delete<void>(`${customerBase}/profile`, { companySlug, customerSlug }, body),
   tickets: (companySlug: string, customerSlug: string, query?: Record<string, unknown>) =>
-    portalApi.get<ManagementTicketsDto>(`${customerBase}/tickets`, { companySlug, customerSlug }, query),
+    portalApi.get<ManagementTicketsDto>(
+      `${customerBase}/tickets`,
+      { companySlug, customerSlug },
+      query,
+    ),
 }
-

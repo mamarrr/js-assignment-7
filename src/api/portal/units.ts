@@ -19,7 +19,8 @@ export const unitsApi = {
     customerSlug: string,
     propertySlug: string,
     query?: Record<string, unknown>,
-  ) => portalApi.get<UnitListItemDto[]>(unitsBase, { companySlug, customerSlug, propertySlug }, query),
+  ) =>
+    portalApi.get<UnitListItemDto[]>(unitsBase, { companySlug, customerSlug, propertySlug }, query),
   create: (companySlug: string, customerSlug: string, propertySlug: string, body: UnitRequestDto) =>
     portalApi.post<UnitProfileDto>(unitsBase, { companySlug, customerSlug, propertySlug }, body),
   dashboard: (companySlug: string, customerSlug: string, propertySlug: string, unitSlug: string) =>
@@ -85,4 +86,3 @@ export const unitsApi = {
       query,
     ),
 }
-

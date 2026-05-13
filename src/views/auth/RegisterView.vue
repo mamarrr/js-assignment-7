@@ -118,7 +118,11 @@ const submit = async () => {
           <AppFieldErrors :errors="fieldErrors('lastName')" />
         </label>
 
-        <AppFormActions :pending="pending" submit-label="Create account" pending-label="Creating account..." />
+        <AppFormActions
+          :pending="pending"
+          submit-label="Create account"
+          pending-label="Creating account..."
+        />
       </form>
 
       <p class="auth-card__footer">

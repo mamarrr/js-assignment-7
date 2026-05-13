@@ -42,7 +42,9 @@ onMounted(async () => {
           <article v-if="workspaceStore.canCreateManagementCompany" class="panel">
             <h2>New management company</h2>
             <p>Register your company and create the first management workspace.</p>
-            <RouterLink class="button" to="/onboarding/new-management-company">Start setup</RouterLink>
+            <RouterLink class="button" to="/onboarding/new-management-company"
+              >Start setup</RouterLink
+            >
           </article>
 
           <article v-if="workspaceStore.canJoinManagementCompany" class="panel">
@@ -55,7 +57,9 @@ onMounted(async () => {
         </div>
 
         <AppEmptyState
-          v-if="!workspaceStore.canCreateManagementCompany && !workspaceStore.canJoinManagementCompany"
+          v-if="
+            !workspaceStore.canCreateManagementCompany && !workspaceStore.canJoinManagementCompany
+          "
           title="No onboarding actions are available"
           message="Your account does not currently have an available onboarding action."
         />

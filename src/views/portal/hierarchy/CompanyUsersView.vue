@@ -36,7 +36,9 @@ const load = async () => {
 onMounted(async () => {
   try {
     const roles = await companyUsersApi.roles(companySlug())
-    fields.value = fields.value.map((field) => (field.key === 'roleId' ? { ...field, options: roles } : field))
+    fields.value = fields.value.map((field) =>
+      field.key === 'roleId' ? { ...field, options: roles } : field,
+    )
     await load()
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
@@ -81,7 +83,15 @@ const decide = async (requestId: unknown, approved: boolean) => {
 <template>
   <HierarchyState :loading="loading" :error="error">
     <div class="grid">
-      <RecordForm v-model="form" title="Add company user" :fields="fields" :pending="pending" :error="error" submit-label="Add user" @submit="add" />
+      <RecordForm
+        v-model="form"
+        title="Add company user"
+        :fields="fields"
+        :pending="pending"
+        :error="error"
+        submit-label="Add user"
+        @submit="add"
+      />
       <RecordTable
         title="Pending access requests"
         :rows="requests()"
@@ -93,10 +103,27 @@ const decide = async (requestId: unknown, approved: boolean) => {
         ]"
       />
       <div v-if="requests().length" class="request-actions">
-        <button v-for="request in requests()" :key="String(request.requestId)" :disabled="pending" @click="decide(request.requestId, true)">Approve {{ request.requesterEmail }}</button>
-        <button v-for="request in requests()" :key="`${request.requestId}-reject`" :disabled="pending" @click="decide(request.requestId, false)">Reject {{ request.requesterEmail }}</button>
+        <button
+          v-for="request in requests()"
+          :key="String(request.requestId)"
+          :disabled="pending"
+          @click="decide(request.requestId, true)"
+        >
+          Approve {{ request.requesterEmail }}
+        </button>
+        <button
+          v-for="request in requests()"
+          :key="`${request.requestId}-reject`"
+          :disabled="pending"
+          @click="decide(request.requestId, false)"
+        >
+          Reject {{ request.requesterEmail }}
+        </button>
       </div>
-      <RouterLink class="transfer-link" :to="`/companies/${companySlug()}/users/transfer-ownership`">
+      <RouterLink
+        class="transfer-link"
+        :to="`/companies/${companySlug()}/users/transfer-ownership`"
+      >
         Transfer ownership
       </RouterLink>
       <RecordTable

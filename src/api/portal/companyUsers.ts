@@ -19,7 +19,11 @@ export const companyUsersApi = {
   edit: (companySlug: string, membershipId: string) =>
     portalApi.get<CompanyUserEditDto>(`${base}/{membershipId}`, { companySlug, membershipId }),
   update: (companySlug: string, membershipId: string, body: UpdateCompanyUserDto) =>
-    portalApi.put<CompanyUserEditDto>(`${base}/{membershipId}`, { companySlug, membershipId }, body),
+    portalApi.put<CompanyUserEditDto>(
+      `${base}/{membershipId}`,
+      { companySlug, membershipId },
+      body,
+    ),
   remove: (companySlug: string, membershipId: string) =>
     portalApi.delete<void>(`${base}/{membershipId}`, { companySlug, membershipId }),
   roles: (companySlug: string) =>
@@ -41,4 +45,3 @@ export const companyUsersApi = {
       requestId,
     }),
 }
-

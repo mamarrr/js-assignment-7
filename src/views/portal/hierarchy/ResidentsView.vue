@@ -27,7 +27,11 @@ const form = ref(seedForm(fields))
 const companySlug = () => routeParam(route.params.companySlug)
 
 const load = async () => {
-  rows.value = pickFirstArray(await residentsApi.list(companySlug()), ['residents', 'items', 'results'])
+  rows.value = pickFirstArray(await residentsApi.list(companySlug()), [
+    'residents',
+    'items',
+    'results',
+  ])
 }
 
 onMounted(async () => {
@@ -59,7 +63,15 @@ const create = async () => {
 <template>
   <HierarchyState :loading="loading" :error="error">
     <div class="grid">
-      <RecordForm v-model="form" title="Add resident" :fields="fields" :pending="pending" :error="error" submit-label="Add resident" @submit="create" />
+      <RecordForm
+        v-model="form"
+        title="Add resident"
+        :fields="fields"
+        :pending="pending"
+        :error="error"
+        submit-label="Add resident"
+        @submit="create"
+      />
       <RecordTable
         title="Residents"
         :rows="rows"
@@ -68,7 +80,9 @@ const create = async () => {
           { key: 'idCode', label: 'ID code' },
           { key: 'preferredLanguage', label: 'Language' },
         ]"
-        :row-to="(row) => `/companies/${companySlug()}/residents/${row.residentIdCode ?? row.idCode}`"
+        :row-to="
+          (row) => `/companies/${companySlug()}/residents/${row.residentIdCode ?? row.idCode}`
+        "
       />
     </div>
   </HierarchyState>

@@ -58,7 +58,9 @@ const saveEdit = async () => {
   if (state.pending.value || !categoryId) return
   await state.run(
     async () => {
-      page.value = await vendorCategoriesApi.update(scope.value, categoryId, { notes: editForm.notes || null })
+      page.value = await vendorCategoriesApi.update(scope.value, categoryId, {
+        notes: editForm.notes || null,
+      })
       editing.value = null
     },
     { pending: true, success: 'Category assignment updated.' },
@@ -130,7 +132,9 @@ onMounted(() => {
       </form>
 
       <section class="relations-panel">
-        <div v-if="state.success.value" class="relations-alert success">{{ state.success.value }}</div>
+        <div v-if="state.success.value" class="relations-alert success">
+          {{ state.success.value }}
+        </div>
         <h2>Assigned categories</h2>
         <p v-if="categories.length === 0" class="muted">No categories are assigned yet.</p>
         <table v-else>
@@ -144,13 +148,22 @@ onMounted(() => {
           <tbody>
             <tr v-for="category in categories" :key="category.ticketCategoryId">
               <td>
-                <strong>{{ category.categoryLabel || category.ticketCategoryLabel || 'Category' }}</strong>
+                <strong>{{
+                  category.categoryLabel || category.ticketCategoryLabel || 'Category'
+                }}</strong>
                 <span>{{ category.categoryCode }}</span>
               </td>
               <td>{{ category.notes || '-' }}</td>
               <td class="actions">
-                <button :disabled="state.pending.value" type="button" @click="startEdit(category)">Edit</button>
-                <button :disabled="state.pending.value" type="button" class="danger" @click="deleteTarget = category">
+                <button :disabled="state.pending.value" type="button" @click="startEdit(category)">
+                  Edit
+                </button>
+                <button
+                  :disabled="state.pending.value"
+                  type="button"
+                  class="danger"
+                  @click="deleteTarget = category"
+                >
                   Delete
                 </button>
               </td>
@@ -163,7 +176,9 @@ onMounted(() => {
     <dialog :open="Boolean(editing)" class="relations-dialog">
       <form method="dialog" @submit.prevent="saveEdit">
         <h2>Edit category assignment</h2>
-        <div v-if="state.error.value" class="relations-alert danger">{{ apiMessage(state.error.value) }}</div>
+        <div v-if="state.error.value" class="relations-alert danger">
+          {{ apiMessage(state.error.value) }}
+        </div>
         <label>
           Notes
           <textarea v-model="editForm.notes" rows="3" />

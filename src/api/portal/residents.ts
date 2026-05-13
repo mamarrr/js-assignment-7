@@ -19,11 +19,18 @@ export const residentsApi = {
   create: (companySlug: string, body: ResidentRequestDto) =>
     portalApi.post<ResidentProfileDto>(residentsBase, { companySlug }, body),
   dashboard: (companySlug: string, residentIdCode: string) =>
-    portalApi.get<ResidentDashboardDto>(`${residentBase}/dashboard`, { companySlug, residentIdCode }),
+    portalApi.get<ResidentDashboardDto>(`${residentBase}/dashboard`, {
+      companySlug,
+      residentIdCode,
+    }),
   profile: (companySlug: string, residentIdCode: string) =>
     portalApi.get<ResidentProfileDto>(`${residentBase}/profile`, { companySlug, residentIdCode }),
   updateProfile: (companySlug: string, residentIdCode: string, body: ResidentRequestDto) =>
-    portalApi.put<ResidentProfileDto>(`${residentBase}/profile`, { companySlug, residentIdCode }, body),
+    portalApi.put<ResidentProfileDto>(
+      `${residentBase}/profile`,
+      { companySlug, residentIdCode },
+      body,
+    ),
   deleteProfile: (companySlug: string, residentIdCode: string, body: DeleteConfirmationDto) =>
     portalApi.delete<void>(`${residentBase}/profile`, { companySlug, residentIdCode }, body),
   tickets: (companySlug: string, residentIdCode: string, query?: Record<string, unknown>) =>
@@ -45,4 +52,3 @@ export const residentsApi = {
       propertyId,
     }),
 }
-

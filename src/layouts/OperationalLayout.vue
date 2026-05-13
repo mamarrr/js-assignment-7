@@ -77,14 +77,31 @@ const logout = async () => {
       <div class="app-topbar__meta">
         <label class="workspace-switcher">
           <span>Workspace</span>
-          <select :value="selectedWorkspaceKey" :disabled="switchingWorkspace" @change="switchWorkspace">
-            <option v-for="option in workspaceOptions" :key="workspaceKey(option)" :value="workspaceKey(option)">
-              {{ option.displayName ?? option.name ?? option.slug ?? option.companySlug ?? 'Workspace' }}
+          <select
+            :value="selectedWorkspaceKey"
+            :disabled="switchingWorkspace"
+            @change="switchWorkspace"
+          >
+            <option
+              v-for="option in workspaceOptions"
+              :key="workspaceKey(option)"
+              :value="workspaceKey(option)"
+            >
+              {{
+                option.displayName ??
+                option.name ??
+                option.slug ??
+                option.companySlug ??
+                'Workspace'
+              }}
             </option>
           </select>
         </label>
         <span class="topbar-user">{{ authStore.displayName }}</span>
-        <RouterLink class="topbar-link" :to="companySlug ? `/companies/${companySlug}/profile` : '/workspaces'">
+        <RouterLink
+          class="topbar-link"
+          :to="companySlug ? `/companies/${companySlug}/profile` : '/workspaces'"
+        >
           Profile
         </RouterLink>
         <button class="topbar-button" type="button" :disabled="loggingOut" @click="logout">

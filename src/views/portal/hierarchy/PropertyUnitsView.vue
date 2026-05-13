@@ -29,7 +29,11 @@ const customerSlug = () => routeParam(route.params.customerSlug)
 const propertySlug = () => routeParam(route.params.propertySlug)
 
 const load = async () => {
-  rows.value = pickFirstArray(await unitsApi.list(companySlug(), customerSlug(), propertySlug()), ['units', 'items', 'results'])
+  rows.value = pickFirstArray(await unitsApi.list(companySlug(), customerSlug(), propertySlug()), [
+    'units',
+    'items',
+    'results',
+  ])
 }
 
 onMounted(async () => {
@@ -46,7 +50,12 @@ const create = async () => {
   pending.value = true
   error.value = null
   try {
-    await unitsApi.create(companySlug(), customerSlug(), propertySlug(), buildPayload(fields, form.value))
+    await unitsApi.create(
+      companySlug(),
+      customerSlug(),
+      propertySlug(),
+      buildPayload(fields, form.value),
+    )
     form.value = seedForm(fields)
     notifications.push({ tone: 'success', title: 'Unit created.' })
     await load()
@@ -61,7 +70,15 @@ const create = async () => {
 <template>
   <HierarchyState :loading="loading" :error="error">
     <div class="grid">
-      <RecordForm v-model="form" title="Add unit" :fields="fields" :pending="pending" :error="error" submit-label="Add unit" @submit="create" />
+      <RecordForm
+        v-model="form"
+        title="Add unit"
+        :fields="fields"
+        :pending="pending"
+        :error="error"
+        submit-label="Add unit"
+        @submit="create"
+      />
       <RecordTable
         title="Units"
         :rows="rows"
@@ -71,7 +88,10 @@ const create = async () => {
           { key: 'sizeM2', label: 'Size m2' },
           { key: 'currentResidentName', label: 'Current resident' },
         ]"
-        :row-to="(row) => `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units/${row.unitSlug ?? row.slug}`"
+        :row-to="
+          (row) =>
+            `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units/${row.unitSlug ?? row.slug}`
+        "
       />
     </div>
   </HierarchyState>

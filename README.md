@@ -1,48 +1,48 @@
-# assignment-7
+# Assignment 7 Vue SPA
 
-This template should help get you started developing with Vue 3 in Vite.
+Standalone Vue 3 + TypeScript SPA for the property operations backend API described by `backend-swagger.json`.
 
-## Recommended IDE Setup
+## Requirements
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+- Node.js `^20.19.0` or `>=22.12.0`
+- npm
 
-## Recommended Browser Setup
+## Configuration
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+Set `VITE_API_BASE_URL` when the API is served from a different origin:
 
-## Type Support for `.vue` Imports in TS
+```sh
+VITE_API_BASE_URL=https://localhost:5001
+```
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+When `VITE_API_BASE_URL` is not set, the SPA uses same-origin API requests such as `/api/v1/auth/login`.
 
-## Customize configuration
+## Local Startup
 
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+Install dependencies:
 
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+Run the development server:
 
 ```sh
 npm run dev
 ```
 
-### Type-Check, Compile and Minify for Production
+Build for production:
 
 ```sh
 npm run build
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+Preview the production build:
 
 ```sh
-npm run lint
+npm run preview
 ```
+
+## Verification Notes
+
+`npm run lint` and `npm run format` are configured to modify files (`--fix` / `--write`). Run them only when auto-formatting changes are approved.

@@ -31,13 +31,18 @@ const companySlug = () => routeParam(route.params.companySlug)
 const customerSlug = () => routeParam(route.params.customerSlug)
 
 const load = async () => {
-  rows.value = pickFirstArray(await propertiesApi.list(companySlug(), customerSlug()), ['properties', 'items', 'results'])
+  rows.value = pickFirstArray(await propertiesApi.list(companySlug(), customerSlug()), [
+    'properties',
+    'items',
+    'results',
+  ])
 }
 
 onMounted(async () => {
   try {
     const propertyTypeField = fields.value[1]
-    if (propertyTypeField) fields.value[1] = { ...propertyTypeField, options: await lookupsApi.propertyTypes() }
+    if (propertyTypeField)
+      fields.value[1] = { ...propertyTypeField, options: await lookupsApi.propertyTypes() }
     await load()
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
@@ -50,7 +55,11 @@ const create = async () => {
   pending.value = true
   error.value = null
   try {
-    await propertiesApi.create(companySlug(), customerSlug(), buildPayload(fields.value, form.value))
+    await propertiesApi.create(
+      companySlug(),
+      customerSlug(),
+      buildPayload(fields.value, form.value),
+    )
     form.value = seedForm(fields.value)
     notifications.push({ tone: 'success', title: 'Property created.' })
     await load()
@@ -65,7 +74,15 @@ const create = async () => {
 <template>
   <HierarchyState :loading="loading" :error="error">
     <div class="grid">
-      <RecordForm v-model="form" title="Add property" :fields="fields" :pending="pending" :error="error" submit-label="Add property" @submit="create" />
+      <RecordForm
+        v-model="form"
+        title="Add property"
+        :fields="fields"
+        :pending="pending"
+        :error="error"
+        submit-label="Add property"
+        @submit="create"
+      />
       <RecordTable
         title="Properties"
         :rows="rows"
@@ -75,7 +92,10 @@ const create = async () => {
           { key: 'addressLine', label: 'Address' },
           { key: 'city', label: 'City' },
         ]"
-        :row-to="(row) => `/companies/${companySlug()}/customers/${customerSlug()}/properties/${row.propertySlug ?? row.slug}`"
+        :row-to="
+          (row) =>
+            `/companies/${companySlug()}/customers/${customerSlug()}/properties/${row.propertySlug ?? row.slug}`
+        "
       />
     </div>
   </HierarchyState>

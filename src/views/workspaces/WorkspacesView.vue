@@ -5,11 +5,7 @@ import AppEmptyState from '@/components/AppEmptyState.vue'
 import AppErrorAlert from '@/components/AppErrorAlert.vue'
 import AppLoading from '@/components/AppLoading.vue'
 import { isApiError, type ApiError } from '@/api/errors'
-import {
-  useWorkspaceStore,
-  workspaceOptionPath,
-  workspaceRedirectPath,
-} from '@/stores/workspace'
+import { useWorkspaceStore, workspaceOptionPath, workspaceRedirectPath } from '@/stores/workspace'
 import type { WorkspaceOptionDto } from '@/types/api'
 
 const router = useRouter()
@@ -24,9 +20,15 @@ const workspaceKey = (option: WorkspaceOptionDto) =>
 
 const groups = computed(() => {
   const groupedKeys = new Set(
-    [...workspaceStore.managementCompanies, ...workspaceStore.customers, ...workspaceStore.residents].map(workspaceKey),
+    [
+      ...workspaceStore.managementCompanies,
+      ...workspaceStore.customers,
+      ...workspaceStore.residents,
+    ].map(workspaceKey),
   )
-  const otherOptions = workspaceStore.workspaceOptions.filter((option) => !groupedKeys.has(workspaceKey(option)))
+  const otherOptions = workspaceStore.workspaceOptions.filter(
+    (option) => !groupedKeys.has(workspaceKey(option)),
+  )
 
   return [
     { title: 'Management companies', items: workspaceStore.managementCompanies },
@@ -36,14 +38,17 @@ const groups = computed(() => {
   ].filter((group) => group.items.length > 0)
 })
 
-const optionTitle = (option: WorkspaceOptionDto) => option.name ?? option.displayName ?? option.slug ?? 'Workspace'
+const optionTitle = (option: WorkspaceOptionDto) =>
+  option.name ?? option.displayName ?? option.slug ?? 'Workspace'
 
 const optionMeta = (option: WorkspaceOptionDto) =>
   [
     option.contextType,
     option.managementCompanySlug ? `Company: ${option.managementCompanySlug}` : undefined,
     option.isDefault ? 'Default' : undefined,
-  ].filter(Boolean).join(' | ')
+  ]
+    .filter(Boolean)
+    .join(' | ')
 
 const enterWorkspace = async (option: WorkspaceOptionDto) => {
   selectError.value = null
@@ -51,7 +56,12 @@ const enterWorkspace = async (option: WorkspaceOptionDto) => {
 
   try {
     const redirect = await workspaceStore.selectWorkspace(option)
-    await router.replace(workspaceRedirectPath(redirect) ?? workspaceOptionPath(option) ?? workspaceStore.defaultPath ?? '/')
+    await router.replace(
+      workspaceRedirectPath(redirect) ??
+        workspaceOptionPath(option) ??
+        workspaceStore.defaultPath ??
+        '/',
+    )
   } catch (error) {
     selectError.value = isApiError(error)
       ? error
@@ -101,7 +111,11 @@ onMounted(async () => {
           <section v-for="group in groups" :key="group.title" class="workspace-group">
             <h2>{{ group.title }}</h2>
             <div class="workspace-grid">
-              <article v-for="option in group.items" :key="option.id ?? option.path ?? option.name" class="panel">
+              <article
+                v-for="option in group.items"
+                :key="option.id ?? option.path ?? option.name"
+                class="panel"
+              >
                 <div>
                   <h3>{{ optionTitle(option) }}</h3>
                   <p v-if="optionMeta(option)">{{ optionMeta(option) }}</p>
@@ -120,7 +134,9 @@ onMounted(async () => {
         </div>
 
         <div
-          v-if="workspaceStore.canCreateManagementCompany || workspaceStore.canJoinManagementCompany"
+          v-if="
+            workspaceStore.canCreateManagementCompany || workspaceStore.canJoinManagementCompany
+          "
           class="workspace-actions"
         >
           <RouterLink

@@ -34,11 +34,19 @@ onMounted(async () => {
       :dashboard="dashboard"
       :title="text(dashboard.context ?? dashboard, ['propertyName', 'name'], propertySlug())"
       :links="[
-        { label: 'Profile', to: `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/profile` },
-        { label: 'Units', to: `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units` },
-        { label: 'Tickets', to: `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/tickets` },
+        {
+          label: 'Profile',
+          to: `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/profile`,
+        },
+        {
+          label: 'Units',
+          to: `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/units`,
+        },
+        {
+          label: 'Tickets',
+          to: `/companies/${companySlug()}/customers/${customerSlug()}/properties/${propertySlug()}/tickets`,
+        },
       ]"
     />
   </HierarchyState>
 </template>
-

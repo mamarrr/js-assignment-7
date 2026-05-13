@@ -2,7 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
 
-const routeParam = (value: unknown) => (Array.isArray(value) ? String(value[0] ?? '') : String(value ?? ''))
+const routeParam = (value: unknown) =>
+  Array.isArray(value) ? String(value[0] ?? '') : String(value ?? '')
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -330,7 +331,11 @@ router.beforeEach(async (to) => {
     return workspaceStore.defaultPath
   }
 
-  if (to.meta.requiresWorkspace && !workspaceStore.selectedWorkspace && !workspaceStore.defaultPath) {
+  if (
+    to.meta.requiresWorkspace &&
+    !workspaceStore.selectedWorkspace &&
+    !workspaceStore.defaultPath
+  ) {
     return { name: 'workspaces' }
   }
 

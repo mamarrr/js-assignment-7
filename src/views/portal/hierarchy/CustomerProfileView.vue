@@ -42,7 +42,14 @@ const save = async () => {
   pending.value = true
   error.value = null
   try {
-    form.value = seedForm(fields, await customersApi.updateProfile(companySlug(), customerSlug(), buildPayload(fields, form.value)))
+    form.value = seedForm(
+      fields,
+      await customersApi.updateProfile(
+        companySlug(),
+        customerSlug(),
+        buildPayload(fields, form.value),
+      ),
+    )
     notifications.push({ tone: 'success', title: 'Customer profile updated.' })
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
@@ -71,8 +78,26 @@ const remove = async () => {
 <template>
   <HierarchyState :loading="loading" :error="error">
     <div class="grid">
-      <RecordForm v-model="form" title="Customer profile" :fields="fields" :pending="pending" :error="error" submit-label="Save profile" @submit="save" />
-      <RecordForm v-model="deleteForm" title="Delete customer" description="Enter the required delete confirmation." :fields="[{ key: 'deleteConfirmation', label: 'Delete confirmation' }]" :pending="pending" :error="null" submit-label="Delete customer" danger @submit="remove" />
+      <RecordForm
+        v-model="form"
+        title="Customer profile"
+        :fields="fields"
+        :pending="pending"
+        :error="error"
+        submit-label="Save profile"
+        @submit="save"
+      />
+      <RecordForm
+        v-model="deleteForm"
+        title="Delete customer"
+        description="Enter the required delete confirmation."
+        :fields="[{ key: 'deleteConfirmation', label: 'Delete confirmation' }]"
+        :pending="pending"
+        :error="null"
+        submit-label="Delete customer"
+        danger
+        @submit="remove"
+      />
     </div>
   </HierarchyState>
 </template>

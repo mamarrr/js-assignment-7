@@ -15,7 +15,12 @@ const emit = defineEmits<{
 
 <template>
   <div class="form-actions">
-    <button class="button" :class="{ 'button--danger': destructive }" type="submit" :disabled="pending">
+    <button
+      class="button"
+      :class="{ 'button--danger': destructive }"
+      type="submit"
+      :disabled="pending"
+    >
       {{ pending ? (pendingLabel ?? 'Saving...') : (submitLabel ?? 'Save') }}
     </button>
     <button

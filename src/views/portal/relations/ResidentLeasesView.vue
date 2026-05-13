@@ -29,7 +29,10 @@ const deleteTarget = ref<LeaseDto | null>(null)
 const form = createLeaseForm()
 const search = ref('')
 
-const scope = computed(() => ({ companySlug: companySlug.value, residentIdCode: residentIdCode.value }))
+const scope = computed(() => ({
+  companySlug: companySlug.value,
+  residentIdCode: residentIdCode.value,
+}))
 
 const propertyLabel = (property: LeasePropertySearchItemDto) => {
   const name = optionLabel(property, ['propertyName', 'name'])
@@ -48,19 +51,25 @@ const load = async () => {
 }
 
 const searchProperties = async () => {
-  await state.run(async () => {
-    const result = await residentLeasesApi.searchProperties(scope.value, search.value)
-    propertyResults.value = asArray<LeasePropertySearchItemDto>(result.properties)
-  }, { pending: true })
+  await state.run(
+    async () => {
+      const result = await residentLeasesApi.searchProperties(scope.value, search.value)
+      propertyResults.value = asArray<LeasePropertySearchItemDto>(result.properties)
+    },
+    { pending: true },
+  )
 }
 
 const loadUnits = async () => {
   if (!form.propertyId) return
-  await state.run(async () => {
-    const result = await residentLeasesApi.unitsForProperty(scope.value, form.propertyId)
-    unitOptions.value = asArray<LeaseUnitOptionDto>(result.units)
-    form.unitId = ''
-  }, { pending: true })
+  await state.run(
+    async () => {
+      const result = await residentLeasesApi.unitsForProperty(scope.value, form.propertyId)
+      unitOptions.value = asArray<LeaseUnitOptionDto>(result.units)
+      form.unitId = ''
+    },
+    { pending: true },
+  )
 }
 
 const resetForm = () => {
@@ -133,7 +142,9 @@ onMounted(() => {
         <h1>Resident leases</h1>
         <span>{{ residentIdCode }}</span>
       </div>
-      <RouterLink :to="`/companies/${companySlug}/residents/${residentIdCode}`">Back to resident</RouterLink>
+      <RouterLink :to="`/companies/${companySlug}/residents/${residentIdCode}`"
+        >Back to resident</RouterLink
+      >
     </header>
 
     <section v-if="state.loading.value" class="relations-panel">Loading leases...</section>
@@ -152,7 +163,9 @@ onMounted(() => {
             Property search
             <span class="relations-inline">
               <input v-model="search" placeholder="Search properties" />
-              <button :disabled="state.pending.value" type="button" @click="searchProperties">Search</button>
+              <button :disabled="state.pending.value" type="button" @click="searchProperties">
+                Search
+              </button>
             </span>
           </label>
           <label>
@@ -216,13 +229,17 @@ onMounted(() => {
           <small>{{ fieldError(state.error.value, 'notes') }}</small>
         </label>
         <div class="actions">
-          <button :disabled="state.pending.value" type="submit">{{ editing ? 'Save' : 'Create lease' }}</button>
+          <button :disabled="state.pending.value" type="submit">
+            {{ editing ? 'Save' : 'Create lease' }}
+          </button>
           <button v-if="editing" type="button" @click="resetForm">Cancel</button>
         </div>
       </form>
 
       <section class="relations-panel">
-        <div v-if="state.success.value" class="relations-alert success">{{ state.success.value }}</div>
+        <div v-if="state.success.value" class="relations-alert success">
+          {{ state.success.value }}
+        </div>
         <h2>Current leases</h2>
         <p v-if="leases.length === 0" class="muted">No leases are linked yet.</p>
         <table v-else>
@@ -236,9 +253,14 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-for="lease in leases" :key="lease.leaseId">
-              <td>{{ lease.propertyName }} <span>{{ lease.unitNr || lease.unitName || lease.unitSlug }}</span></td>
+              <td>
+                {{ lease.propertyName }}
+                <span>{{ lease.unitNr || lease.unitName || lease.unitSlug }}</span>
+              </td>
               <td>{{ lease.leaseRoleLabel }}</td>
-              <td>{{ lease.startDate }} <span v-if="lease.endDate">- {{ lease.endDate }}</span></td>
+              <td>
+                {{ lease.startDate }} <span v-if="lease.endDate">- {{ lease.endDate }}</span>
+              </td>
               <td class="actions">
                 <button type="button" @click="startEdit(lease)">Edit</button>
                 <button type="button" class="danger" @click="deleteTarget = lease">Delete</button>

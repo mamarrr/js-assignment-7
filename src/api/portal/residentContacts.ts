@@ -31,7 +31,10 @@ export const residentContactsApi = {
       body,
     ),
   deleteAssignment: (scope: ResidentContactScope, residentContactId: string) =>
-    portalApi.delete<ResidentContactListDto>(residentContactItemBase, { ...scope, residentContactId }),
+    portalApi.delete<ResidentContactListDto>(residentContactItemBase, {
+      ...scope,
+      residentContactId,
+    }),
   setPrimary: (scope: ResidentContactScope, residentContactId: string) =>
     portalApi.post<ResidentContactListDto>(`${residentContactItemBase}/set-primary`, {
       ...scope,

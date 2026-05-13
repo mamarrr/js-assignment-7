@@ -35,7 +35,12 @@ onMounted(async () => {
   try {
     const firstField = fields.value[0]
     fields.value = firstField
-      ? [{ ...firstField, options: await companyUsersApi.ownershipTransferCandidates(companySlug()) }]
+      ? [
+          {
+            ...firstField,
+            options: await companyUsersApi.ownershipTransferCandidates(companySlug()),
+          },
+        ]
       : fields.value
   } catch (caught) {
     error.value = isApiError(caught) ? caught : null
