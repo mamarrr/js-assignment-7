@@ -1,0 +1,69 @@
+@model WebApp.ViewModels.Management.Tickets.TicketFormPageViewModel
+@using App.Resources.Views
+
+<script>
+(() => {
+    const optionUrls = {
+        properties: '@Url.RouteUrl(PortalRouteNames.ManagementTicketPropertyOptions, new { companySlug = Model.CompanySlug })',
+        units: '@Url.RouteUrl(PortalRouteNames.ManagementTicketUnitOptions, new { companySlug = Model.CompanySlug })',
+        residents: '@Url.RouteUrl(PortalRouteNames.ManagementTicketResidentOptions, new { companySlug = Model.CompanySlug })',
+        vendors: '@Url.RouteUrl(PortalRouteNames.ManagementTicketVendorOptions, new { companySlug = Model.CompanySlug })'
+    };
+    const selects = {
+        category: document.getElementById('Form_TicketCategoryId'),
+        customer: document.getElementById('Form_CustomerId'),
+        property: document.getElementById('Form_PropertyId'),
+        unit: document.getElementById('Form_UnitId'),
+        resident: document.getElementById('Form_ResidentId'),
+        vendor: document.getElementById('Form_VendorId')
+    };
+
+    const placeholders = {
+        property: '@UiText.SelectProperty',
+        unit: '@UiText.SelectUnit',
+        resident: '@UiText.SelectResident',
+        vendor: '@UiText.SelectVendor'
+    };
+
+    const reset = (select, placeholder) => {
+        if (!select) return;
+        select.innerHTML = '';
+        const option = document.createElement('option');
+        option.value = '';
+        option.textContent = placeholder;
+        select.appendChild(option);
+    };
+
+    const load = async (url, select, placeholder) => {
+        reset(select, placeholder);
+        const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+        if (!response.ok) return;
+        const options = await response.json();
+        for (const item of options) {
+            const option = document.createElement('option');
+            option.value = item.id;
+            option.textContent = item.label;
+            select.appendChild(option);
+        }
+    };
+
+    selects.customer?.addEventListener('change', async () => {
+        reset(selects.unit, placeholders.unit);
+        reset(selects.resident, placeholders.resident);
+        await load(`${optionUrls.properties}?customerId=${selects.customer.value}`, selects.property, placeholders.property);
+    });
+
+    selects.property?.addEventListener('change', async () => {
+        reset(selects.resident, placeholders.resident);
+        await load(`${optionUrls.units}?propertyId=${selects.property.value}`, selects.unit, placeholders.unit);
+    });
+
+    selects.unit?.addEventListener('change', async () => {
+        await load(`${optionUrls.residents}?unitId=${selects.unit.value}`, selects.resident, placeholders.resident);
+    });
+
+    selects.category?.addEventListener('change', async () => {
+        await load(`${optionUrls.vendors}?categoryId=${selects.category.value}`, selects.vendor, placeholders.vendor);
+    });
+})();
+</script>

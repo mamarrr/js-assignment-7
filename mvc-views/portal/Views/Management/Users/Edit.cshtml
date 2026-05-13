@@ -1,0 +1,95 @@
+@model WebApp.ViewModels.Management.Users.EditManagementUserViewModel
+@using App.Resources.Views
+<section class="management-card" style="max-width: 860px;">
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+        <div>
+            <p class="management-eyebrow mb-2">@UiText.CompanyMembership</p>
+            <h2 class="mb-1">@UiText.EditUser</h2>
+            <p class="management-muted mb-0">@string.Format(UiText.EditUserDescription, Model.FullName)</p>
+        </div>
+        <a class="management-btn ghost" asp-action="Index" asp-route-companySlug="@Model.CompanySlug">@UiText.BackToUsers</a>
+    </div>
+
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    @if (!string.IsNullOrWhiteSpace(Model.ProtectedReason))
+    {
+        <div class="alert alert-info" role="alert">@Model.ProtectedReason</div>
+    }
+
+    @if (Model.IsOwner)
+    {
+        <div class="border rounded p-3 bg-light-subtle mb-4">
+            <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                <span class="management-badge warning">@UiText.Owner</span>
+                @if (Model.IsActor)
+                {
+                    <span class="management-badge info">@UiText.You</span>
+                }
+            </div>
+            <p class="management-muted mb-0">@UiText.OwnerRoleManagedThroughTransfer</p>
+            @if (Model.CanTransferOwnership)
+            {
+                <div class="mt-3">
+                    <a class="management-btn" asp-action="TransferOwnership" asp-route-companySlug="@Model.CompanySlug">@UiText.TransferOwnership</a>
+                </div>
+            }
+        </div>
+    }
+
+    <form method="post" asp-action="Edit" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@Model.MembershipId" class="row g-3">
+        @Html.AntiForgeryToken()
+        <input asp-for="MembershipId" type="hidden" />
+
+        <div class="col-md-6">
+            <label class="form-label">@UiText.FullName</label>
+            <input class="form-control" value="@Model.FullName" disabled />
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">@UiText.Email</label>
+            <input class="form-control" value="@Model.Email" disabled />
+        </div>
+        <div class="col-md-6">
+            <label asp-for="RoleId" class="form-label"></label>
+            @if (Model.CanChangeRole)
+            {
+                <select asp-for="RoleId" asp-items="Model.AvailableRoles" class="form-select">
+                    <option value="">@UiText.SelectRole</option>
+                </select>
+            }
+            else
+            {
+                <input class="form-control" value="@Model.CurrentRoleLabel" disabled />
+                <input asp-for="RoleId" type="hidden" />
+            }
+            <span asp-validation-for="RoleId" class="text-danger"></span>
+            @if (!Model.CanChangeRole && !string.IsNullOrWhiteSpace(Model.CurrentRoleCode))
+            {
+                <div class="management-muted small mt-1">@Model.CurrentRoleCode</div>
+            }
+        </div>
+        <div class="col-md-6">
+            <label asp-for="JobTitle" class="form-label"></label>
+            <input asp-for="JobTitle" class="form-control" />
+            <span asp-validation-for="JobTitle" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="ValidFrom" class="form-label"></label>
+            <input asp-for="ValidFrom" class="form-control" type="date" />
+            <span asp-validation-for="ValidFrom" class="text-danger"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="ValidTo" class="form-label"></label>
+            <input asp-for="ValidTo" class="form-control" type="date" />
+            <span asp-validation-for="ValidTo" class="text-danger"></span>
+        </div>
+        <div class="col-12 d-flex gap-2">
+            <button type="submit" class="management-btn">@UiText.SaveChanges</button>
+            <a class="management-btn ghost" asp-action="Index" asp-route-companySlug="@Model.CompanySlug">@UiText.Cancel</a>
+        </div>
+    </form>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

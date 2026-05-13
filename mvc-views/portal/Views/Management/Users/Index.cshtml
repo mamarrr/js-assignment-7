@@ -1,0 +1,229 @@
+@model WebApp.ViewModels.Management.Users.UsersPageViewModel
+@using App.Resources.Views
+<div class="management-grid management-grid-2">
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <div class="d-flex flex-column flex-lg-row justify-content-between gap-3 align-items-lg-center">
+            <div>
+                <p class="management-eyebrow mb-2">@UiText.CompanyAccessManagement</p>
+                <h2 class="mb-2">@UiText.Users</h2>
+                <p class="management-muted mb-0">@string.Format(UiText.UsersPageIntro, Model.CompanyName)</p>
+            </div>
+            <div class="d-flex flex-column align-items-lg-end gap-2">
+                <span class="management-badge @(Model.Members.Count > 0 ? "success" : "warning")">
+                    @string.Format(UiText.ActiveRecords, Model.Members.Count)
+                </span>
+                @if (Model.CurrentActorIsOwner)
+                {
+                    <a class="management-btn ghost" asp-action="TransferOwnership" asp-route-companySlug="@Model.CompanySlug">@UiText.TransferOwnership</a>
+                }
+            </div>
+        </div>
+    </section>
+
+    <section class="management-card">
+        <h2>@UiText.AddCompanyUser</h2>
+        <p class="management-muted">@UiText.AddCompanyUserDescription</p>
+        <p class="management-muted small mb-3">@UiText.OwnerRoleManagedThroughTransfer</p>
+
+        @if (TempData["ManagementUsersSuccess"] is string successMessage)
+        {
+            <div class="alert alert-success" role="alert">@successMessage</div>
+        }
+
+        @if (TempData["ManagementUsersError"] is string errorMessage)
+        {
+            <div class="alert alert-danger" role="alert">@errorMessage</div>
+        }
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+        <form method="post" asp-action="Add" asp-route-companySlug="@Model.CompanySlug" class="row g-3">
+            @Html.AntiForgeryToken()
+            <div class="col-12">
+                <label asp-for="AddUser.Email" class="form-label"></label>
+                <input asp-for="AddUser.Email" class="form-control" />
+                <span asp-validation-for="AddUser.Email" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddUser.RoleId" class="form-label"></label>
+                <select asp-for="AddUser.RoleId" asp-items="Model.AvailableRoles" class="form-select">
+                    <option value="">@UiText.SelectRole</option>
+                </select>
+                <span asp-validation-for="AddUser.RoleId" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddUser.JobTitle" class="form-label"></label>
+                <input asp-for="AddUser.JobTitle" class="form-control" />
+                <span asp-validation-for="AddUser.JobTitle" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddUser.ValidFrom" class="form-label"></label>
+                <input asp-for="AddUser.ValidFrom" class="form-control" type="date" />
+                <span asp-validation-for="AddUser.ValidFrom" class="text-danger"></span>
+            </div>
+            <div class="col-md-6">
+                <label asp-for="AddUser.ValidTo" class="form-label"></label>
+                <input asp-for="AddUser.ValidTo" class="form-control" type="date" />
+                <span asp-validation-for="AddUser.ValidTo" class="text-danger"></span>
+            </div>
+            
+            <div class="col-12">
+                <button type="submit" class="management-btn">@UiText.AddCompanyUser</button>
+            </div>
+        </form>
+    </section>
+
+    <section class="management-card">
+        <h2>@UiText.PendingAccessRequests</h2>
+        <p class="management-muted">@UiText.PendingAccessRequestsDescription</p>
+
+        @if (Model.PendingRequests.Count == 0)
+        {
+            <div class="border rounded p-3 bg-light-subtle">
+                <strong>@UiText.NoPendingRequests</strong>
+                <p class="management-muted mb-0">@UiText.NoPendingRequestsDescription</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                     <thead>
+                     <tr>
+                         <th>@UiText.Name</th>
+                         <th>@UiText.Email</th>
+                         <th>@UiText.RequestedRole</th>
+                         <th>@UiText.Message</th>
+                         <th>@UiText.RequestedAt</th>
+                         <th class="text-end">@UiText.Actions</th>
+                     </tr>
+                     </thead>
+                     <tbody>
+                     @foreach (var request in Model.PendingRequests)
+                     {
+                        <tr>
+                             <td>@request.RequesterName</td>
+                             <td>@request.RequesterEmail</td>
+                             <td>@request.RequestedRoleLabel</td>
+                              <td>@(string.IsNullOrWhiteSpace(request.Message) ? "—" : request.Message)</td>
+                              <td>@request.RequestedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                              <td class="text-end">
+                                  <div class="d-inline-flex gap-2">
+                                      <form method="post" asp-action="ApproveRequest" asp-route-companySlug="@Model.CompanySlug" asp-route-requestId="@request.RequestId" onsubmit="return confirm('@UiText.ApproveAccessRequestConfirm');">
+                                          @Html.AntiForgeryToken()
+                                          <button type="submit" class="management-btn">@UiText.Approve</button>
+                                      </form>
+                                      <form method="post" asp-action="RejectRequest" asp-route-companySlug="@Model.CompanySlug" asp-route-requestId="@request.RequestId" onsubmit="return confirm('@UiText.RejectAccessRequestConfirm');">
+                                          @Html.AntiForgeryToken()
+                                          <button type="submit" class="management-btn ghost">@UiText.Reject</button>
+                                      </form>
+                                  </div>
+                              </td>
+                         </tr>
+                     }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+
+    <section class="management-card" style="grid-column: 1 / -1;">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <h2 class="mb-1">@UiText.CurrentUsers</h2>
+                <p class="management-muted mb-0">@UiText.CurrentUsersDescription</p>
+            </div>
+        </div>
+
+        @if (Model.Members.Count == 0)
+        {
+            <div class="border rounded p-3 bg-light-subtle">
+                <strong>@UiText.NoCompanyUsersFound</strong>
+                <p class="management-muted mb-0">@UiText.NoCompanyUsersFoundDescription</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead>
+                    <tr>
+                        <th>@UiText.FullName</th>
+                        <th>@UiText.Email</th>
+                        <th>@UiText.Role</th>
+                        <th>@UiText.JobTitle</th>
+                        <th>@UiText.ValidFrom</th>
+                        <th>@UiText.ValidTo</th>
+                        <th class="text-end">@UiText.Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var member in Model.Members)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold">@member.FullName</div>
+                                <div class="d-flex flex-wrap gap-2 mt-1">
+                                    @if (member.IsActor)
+                                    {
+                                        <span class="management-badge info">@UiText.You</span>
+                                    }
+                                    @if (member.IsOwner)
+                                    {
+                                        <span class="management-badge warning">@UiText.Owner</span>
+                                    }
+                                </div>
+                            </td>
+                            <td>@member.Email</td>
+                            <td>
+                                <div>@member.RoleLabel</div>
+                                <div class="management-muted small">@member.RoleCode</div>
+                            </td>
+                            <td>@member.JobTitle</td>
+                            <td>
+                                <div class="d-flex flex-column gap-1 align-items-start">
+                                    @if (!member.IsEffective)
+                                    {
+                                        <span class="management-badge warning">@UiText.NotCurrentlyEffective</span>
+                                    }
+                                </div>
+                            </td>
+                            <td>@member.ValidFrom.ToString("yyyy-MM-dd")</td>
+                            <td>@(member.ValidTo?.ToString("yyyy-MM-dd") ?? "—")</td>
+                            <td class="text-end">
+                                <div class="d-inline-flex flex-column align-items-end gap-2">
+                                    <div class="d-inline-flex gap-2 flex-wrap justify-content-end">
+                                        @if (member.CanEdit)
+                                        {
+                                            <a class="management-btn ghost" asp-action="Edit" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@member.MembershipId">@UiText.EditUser</a>
+                                        }
+                                        @if (member.CanTransferOwnership)
+                                        {
+                                            <a class="management-btn ghost" asp-action="TransferOwnership" asp-route-companySlug="@Model.CompanySlug">@UiText.TransferOwnership</a>
+                                        }
+                                        @if (member.CanDelete)
+                                        {
+                                            <form method="post" asp-action="Delete" asp-route-companySlug="@Model.CompanySlug" asp-route-id="@member.MembershipId" onsubmit="return confirm('@UiText.RemoveUserFromCompanyConfirm');">
+                                                @Html.AntiForgeryToken()
+                                                <button type="submit" class="management-btn ghost">@UiText.Delete</button>
+                                            </form>
+                                        }
+                                    </div>
+                                    @if ((!member.CanEdit || !member.CanDelete || member.CanTransferOwnership) && !string.IsNullOrWhiteSpace(member.ProtectedReason))
+                                    {
+                                        <div class="management-muted small text-end">@member.ProtectedReason</div>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

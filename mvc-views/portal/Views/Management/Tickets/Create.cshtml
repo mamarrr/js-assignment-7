@@ -1,0 +1,8 @@
+@model WebApp.ViewModels.Management.Tickets.TicketFormPageViewModel
+@using App.Resources.Views
+@await Html.PartialAsync("_TicketForm", Model)
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <partial name="_TicketFormScripts" model="Model" />
+}
