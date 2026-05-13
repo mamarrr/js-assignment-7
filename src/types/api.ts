@@ -33,6 +33,8 @@ export interface UserDto extends ApiRecord {
   id?: string
   email?: string
   userName?: string
+  firstName?: string
+  lastName?: string
   fullName?: string
   roles?: string[]
 }

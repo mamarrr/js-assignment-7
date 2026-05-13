@@ -386,6 +386,47 @@ p.field-errors {
   line-height: 1;
 }
 
+.auth-page {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 1rem;
+}
+
+.auth-card {
+  display: grid;
+  width: min(100%, 30rem);
+  gap: 1rem;
+  border: 1px solid var(--app-border);
+  border-radius: 0.5rem;
+  background: var(--app-surface);
+  box-shadow: 0 16px 40px rgba(32, 38, 54, 0.12);
+  padding: 1.25rem;
+}
+
+.auth-card__header {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.auth-card__header h1,
+.auth-card__footer {
+  margin: 0;
+}
+
+.auth-card__header h1 {
+  font-size: 1.55rem;
+}
+
+.auth-card__footer {
+  color: var(--app-muted);
+}
+
+.auth-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
 @media (max-width: 1024px) {
   .app-body {
     grid-template-columns: 220px minmax(0, 1fr);

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   submitLabel?: string
+  pendingLabel?: string
   cancelLabel?: string
   pending?: boolean
   destructive?: boolean
@@ -15,7 +16,7 @@ const emit = defineEmits<{
 <template>
   <div class="form-actions">
     <button class="button" :class="{ 'button--danger': destructive }" type="submit" :disabled="pending">
-      {{ pending ? 'Saving...' : (submitLabel ?? 'Save') }}
+      {{ pending ? (pendingLabel ?? 'Saving...') : (submitLabel ?? 'Save') }}
     </button>
     <button
       v-if="showCancel"
