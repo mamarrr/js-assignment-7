@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import AppErrorAlert from '@/components/AppErrorAlert.vue'
 import { scheduledWorkApi, type ScheduledWorkListDto } from '@/api/portal/scheduledWork'
 import { formatDateTime, useOperationState, usePortalRouteParams } from './operationView'
 
@@ -34,7 +35,7 @@ onMounted(load)
     </header>
 
     <p v-if="success" class="alert success">{{ success }}</p>
-    <section v-if="error" class="alert danger"><strong>{{ error.title }}</strong><p>{{ error.message }}</p></section>
+    <AppErrorAlert v-if="error" :error="error" />
 
     <section class="panel">
       <p v-if="loading">Loading scheduled work...</p>

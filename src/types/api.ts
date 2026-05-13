@@ -325,13 +325,20 @@ export interface UpdateTicketDto extends CreateTicketDto {
 
 export interface ScheduledWorkListItemDto extends ApiRecord {
   scheduledWorkId?: string
+  vendorId?: string
   vendorName?: string
+  workStatusId?: string
+  workStatusCode?: string
   workStatusLabel?: string
   scheduledStart?: string
   scheduledEnd?: string
   realStart?: string
   realEnd?: string
+  notes?: string
+  createdAt?: string
   workLogCount?: number
+  path?: string
+  workLogsPath?: string
 }
 
 export interface ScheduledWorkListDto extends ApiRecord {
@@ -341,11 +348,20 @@ export interface ScheduledWorkListDto extends ApiRecord {
 }
 
 export interface ScheduledWorkDetailsDto extends ScheduledWorkListItemDto {
+  companySlug?: string
+  companyName?: string
+  ticketId?: string
   ticketNr?: string
+  ticketTitle?: string
+  listPath?: string
+  editFormPath?: string
   notes?: string
 }
 
 export interface ScheduledWorkFormDto extends ApiRecord {
+  companySlug?: string
+  companyName?: string
+  ticketId?: string
   ticketNr?: string
   ticketTitle?: string
   scheduledWorkId?: string
@@ -360,8 +376,23 @@ export interface ScheduledWorkFormDto extends ApiRecord {
   workStatuses?: ApiRecord[]
 }
 
+export interface ScheduledWorkRequestDto extends ApiRecord {
+  vendorId?: string
+  workStatusId?: string
+  scheduledStart: string
+  scheduledEnd?: string | null
+  realStart?: string | null
+  realEnd?: string | null
+  notes?: string | null
+}
+
+export interface ScheduledWorkActionDto extends ApiRecord {
+  actionAt: string
+}
+
 export interface WorkLogListItemDto extends ApiRecord {
   workLogId?: string
+  appUserId?: string
   workStart?: string
   workEnd?: string
   hours?: number
@@ -369,26 +400,41 @@ export interface WorkLogListItemDto extends ApiRecord {
   laborCost?: number
   appUserName?: string
   description?: string
+  createdAt?: string
+  path?: string
 }
 
 export interface WorkLogTotalsDto extends ApiRecord {
   count?: number
   hours?: number
   materialCost?: number
+  laborCost?: number
   totalCost?: number
 }
 
 export interface WorkLogListDto extends ApiRecord {
+  companySlug?: string
+  companyName?: string
+  ticketId?: string
   ticketNr?: string
+  ticketTitle?: string
+  scheduledWorkId?: string
   vendorName?: string
   workStatusLabel?: string
   canViewCosts?: boolean
   totals?: WorkLogTotalsDto
   items?: WorkLogListItemDto[]
+  path?: string
 }
 
 export interface WorkLogFormDto extends ApiRecord {
+  companySlug?: string
+  companyName?: string
+  ticketId?: string
   ticketNr?: string
+  ticketTitle?: string
+  scheduledWorkId?: string
+  workLogId?: string
   vendorName?: string
   canViewCosts?: boolean
   workStart?: string
@@ -397,10 +443,28 @@ export interface WorkLogFormDto extends ApiRecord {
   materialCost?: number
   laborCost?: number
   description?: string
+  path?: string
 }
 
 export interface WorkLogDeleteModelDto extends ApiRecord {
+  companySlug?: string
+  companyName?: string
+  ticketId?: string
+  ticketNr?: string
+  scheduledWorkId?: string
+  workLogId?: string
+  vendorName?: string
   description?: string
+  path?: string
+}
+
+export interface WorkLogRequestDto extends ApiRecord {
+  workStart?: string | null
+  workEnd?: string | null
+  hours?: number | null
+  materialCost?: number | null
+  laborCost?: number | null
+  description?: string | null
 }
 
 export interface LeaseDto extends ApiRecord {

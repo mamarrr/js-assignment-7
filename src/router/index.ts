@@ -211,14 +211,34 @@ const router = createRouter({
           component: () => import('@/views/portal/operations/ScheduledWorkListView.vue'),
         },
         {
+          path: 'tickets/:ticketId/scheduled-work/new',
+          name: 'scheduled-work-new',
+          component: () => import('@/views/portal/operations/ScheduledWorkFormView.vue'),
+        },
+        {
           path: 'tickets/:ticketId/scheduled-work/:scheduledWorkId',
           name: 'scheduled-work-details',
           component: () => import('@/views/portal/operations/ScheduledWorkDetailsView.vue'),
         },
         {
+          path: 'tickets/:ticketId/scheduled-work/:scheduledWorkId/edit',
+          name: 'scheduled-work-edit',
+          component: () => import('@/views/portal/operations/ScheduledWorkFormView.vue'),
+        },
+        {
           path: 'tickets/:ticketId/scheduled-work/:scheduledWorkId/work-logs',
           name: 'work-logs',
           component: () => import('@/views/portal/operations/WorkLogListView.vue'),
+        },
+        {
+          path: 'tickets/:ticketId/scheduled-work/:scheduledWorkId/work-logs/new',
+          name: 'work-log-new',
+          component: () => import('@/views/portal/operations/WorkLogFormView.vue'),
+        },
+        {
+          path: 'tickets/:ticketId/scheduled-work/:scheduledWorkId/work-logs/:workLogId/edit',
+          name: 'work-log-edit',
+          component: () => import('@/views/portal/operations/WorkLogFormView.vue'),
         },
         {
           path: 'vendors',

@@ -1,14 +1,18 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import AppErrorAlert from '@/components/AppErrorAlert.vue'
+import AppFieldErrors from '@/components/AppFieldErrors.vue'
 import { workLogsApi, type WorkLogFormDto } from '@/api/portal/workLogs'
-import { emptyToNull, fromDateTimeLocal, toDateTimeLocal, useOperationState, usePortalRouteParams } from './operationView'
+import { emptyToNull, fieldErrors, fromDateTimeLocal, summaryErrors, toDateTimeLocal, useOperationState, usePortalRouteParams } from './operationView'
 
 const router = useRouter()
 const params = usePortalRouteParams()
-const { loading, saving, error, capture } = useOperationState()
+const { loading, saving, error, capture, notifySuccess } = useOperationState()
 const isEdit = computed(() => Boolean(params.workLogId.value))
-let bootstrap: WorkLogFormDto = {}
+const bootstrap = ref<WorkLogFormDto>({})
+const fieldErrorMap = computed(() => error.value?.fieldErrors ?? {})
+const summary = computed(() => summaryErrors(error.value?.fieldErrors))
 const form = reactive({
   workStart: '',
   workEnd: '',
@@ -19,7 +23,7 @@ const form = reactive({
 })
 
 const fill = (dto: WorkLogFormDto) => {
-  bootstrap = dto
+  bootstrap.value = dto
   form.workStart = toDateTimeLocal(dto.workStart)
   form.workEnd = toDateTimeLocal(dto.workEnd)
   form.hours = dto.hours == null ? '' : String(dto.hours)
@@ -59,8 +63,8 @@ const submit = async () => {
       workStart: fromDateTimeLocal(form.workStart),
       workEnd: fromDateTimeLocal(form.workEnd),
       hours: toNumber(form.hours),
-      materialCost: bootstrap.canViewCosts ? toNumber(form.materialCost) : null,
-      laborCost: bootstrap.canViewCosts ? toNumber(form.laborCost) : null,
+      materialCost: bootstrap.value.canViewCosts ? toNumber(form.materialCost) : null,
+      laborCost: bootstrap.value.canViewCosts ? toNumber(form.laborCost) : null,
       description: emptyToNull(form.description),
     }
     if (isEdit.value) {
@@ -74,6 +78,7 @@ const submit = async () => {
     } else {
       await workLogsApi.create(params.companySlug.value, params.ticketId.value, params.scheduledWorkId.value, body)
     }
+    notifySuccess(isEdit.value ? 'Work log updated.' : 'Work log created.')
     await router.push(
       `/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${params.scheduledWorkId.value}/work-logs`,
     )
@@ -94,17 +99,20 @@ onMounted(load)
       <h1>{{ isEdit ? 'Edit work log' : 'Add work log' }}</h1>
       <p class="muted">{{ bootstrap.vendorName }}</p>
     </header>
-    <section v-if="error" class="alert danger"><strong>{{ error.title }}</strong><p>{{ error.message }}</p></section>
+    <AppErrorAlert v-if="error" :error="error" />
     <p v-if="loading">Loading work log form...</p>
     <form v-else class="panel form-grid" @submit.prevent="submit">
-      <label>Work start<input v-model="form.workStart" type="datetime-local" /></label>
-      <label>Work end<input v-model="form.workEnd" type="datetime-local" /></label>
-      <label :class="{ full: !bootstrap.canViewCosts }">Hours<input v-model="form.hours" type="number" min="0" step="0.25" /></label>
+      <ul v-if="summary.length > 0" class="alert danger full">
+        <li v-for="message in summary" :key="message">{{ message }}</li>
+      </ul>
+      <label>Work start<input v-model="form.workStart" type="datetime-local" :aria-invalid="fieldErrors(fieldErrorMap, 'workStart', 'WorkStart').length > 0" /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'workStart', 'WorkStart')" /></label>
+      <label>Work end<input v-model="form.workEnd" type="datetime-local" :aria-invalid="fieldErrors(fieldErrorMap, 'workEnd', 'WorkEnd').length > 0" /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'workEnd', 'WorkEnd')" /></label>
+      <label :class="{ full: !bootstrap.canViewCosts }">Hours<input v-model="form.hours" type="number" min="0" step="0.25" :aria-invalid="fieldErrors(fieldErrorMap, 'hours', 'Hours').length > 0" /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'hours', 'Hours')" /></label>
       <template v-if="bootstrap.canViewCosts">
-        <label>Material cost<input v-model="form.materialCost" type="number" min="0" step="0.01" /></label>
-        <label>Labor cost<input v-model="form.laborCost" type="number" min="0" step="0.01" /></label>
+        <label>Material cost<input v-model="form.materialCost" type="number" min="0" step="0.01" :aria-invalid="fieldErrors(fieldErrorMap, 'materialCost', 'MaterialCost').length > 0" /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'materialCost', 'MaterialCost')" /></label>
+        <label>Labor cost<input v-model="form.laborCost" type="number" min="0" step="0.01" :aria-invalid="fieldErrors(fieldErrorMap, 'laborCost', 'LaborCost').length > 0" /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'laborCost', 'LaborCost')" /></label>
       </template>
-      <label class="full">Description<textarea v-model="form.description" rows="4" /></label>
+      <label class="full">Description<textarea v-model="form.description" rows="4" :aria-invalid="fieldErrors(fieldErrorMap, 'description', 'Description').length > 0" /><AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'description', 'Description')" /></label>
       <div class="actions full">
         <button type="submit" :disabled="saving">{{ saving ? 'Saving...' : 'Save work log' }}</button>
         <RouterLink :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${params.scheduledWorkId.value}/work-logs`">Cancel</RouterLink>

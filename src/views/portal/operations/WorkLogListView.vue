@@ -1,11 +1,16 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { workLogsApi, type WorkLogListDto } from '@/api/portal/workLogs'
+import AppConfirmationDialog from '@/components/AppConfirmationDialog.vue'
+import AppErrorAlert from '@/components/AppErrorAlert.vue'
+import { workLogsApi, type WorkLogDeleteModelDto, type WorkLogListDto } from '@/api/portal/workLogs'
 import { formatDateTime, formatMoney, formatNumber, useOperationState, usePortalRouteParams } from './operationView'
 
 const params = usePortalRouteParams()
-const { loading, saving, error, success, capture } = useOperationState()
+const { loading, saving, error, success, capture, notifySuccess } = useOperationState()
 const page = ref<WorkLogListDto>()
+const deleteOpen = ref(false)
+const deleteTargetId = ref('')
+const deleteModel = ref<WorkLogDeleteModelDto>()
 
 const load = async () => {
   loading.value = true
@@ -20,21 +25,36 @@ const load = async () => {
 }
 
 const deleteLog = async (workLogId?: string) => {
-  if (!workLogId) return
-  const model = await workLogsApi.deleteModel(
-    params.companySlug.value,
-    params.ticketId.value,
-    params.scheduledWorkId.value,
-    workLogId,
-  )
-  const confirmed = window.confirm(`Delete this work log${model.description ? `: ${model.description}` : ''}?`)
-  if (!confirmed) return
+  if (!workLogId || saving.value) return
   saving.value = true
   error.value = undefined
   try {
     await workLogsApi.delete(params.companySlug.value, params.ticketId.value, params.scheduledWorkId.value, workLogId)
-    success.value = 'Work log deleted.'
+    notifySuccess('Work log deleted.')
+    deleteOpen.value = false
+    deleteTargetId.value = ''
+    deleteModel.value = undefined
     await load()
+  } catch (caught) {
+    capture(caught)
+  } finally {
+    saving.value = false
+  }
+}
+
+const openDelete = async (workLogId?: string) => {
+  if (!workLogId || saving.value) return
+  saving.value = true
+  error.value = undefined
+  try {
+    deleteModel.value = await workLogsApi.deleteModel(
+      params.companySlug.value,
+      params.ticketId.value,
+      params.scheduledWorkId.value,
+      workLogId,
+    )
+    deleteTargetId.value = workLogId
+    deleteOpen.value = true
   } catch (caught) {
     capture(caught)
   } finally {
@@ -57,7 +77,7 @@ onMounted(load)
     </header>
 
     <p v-if="success" class="alert success">{{ success }}</p>
-    <section v-if="error" class="alert danger"><strong>{{ error.title }}</strong><p>{{ error.message }}</p></section>
+    <AppErrorAlert v-if="error" :error="error" />
 
     <section class="panel totals">
       <div><p class="eyebrow">Logs</p><strong>{{ page?.totals?.count ?? 0 }}</strong></div>
@@ -93,12 +113,23 @@ onMounted(load)
             <td>{{ item.description || '-' }}</td>
             <td class="actions">
               <RouterLink :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${params.scheduledWorkId.value}/work-logs/${item.workLogId}/edit`">Edit</RouterLink>
-              <button :disabled="saving" @click="deleteLog(item.workLogId)">Delete</button>
+              <button :disabled="saving" @click="openDelete(item.workLogId)">Delete</button>
             </td>
           </tr>
         </tbody>
       </table>
     </section>
+
+    <AppConfirmationDialog
+      :open="deleteOpen"
+      title="Delete work log"
+      :message="`Delete this work log${deleteModel?.vendorName ? ` for ${deleteModel.vendorName}` : ''}? ${deleteModel?.description ?? ''}`"
+      :pending="saving"
+      confirm-label="Delete work log"
+      destructive
+      @cancel="deleteOpen = false"
+      @confirm="deleteLog(deleteTargetId)"
+    />
   </main>
 </template>
 

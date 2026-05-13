@@ -1,13 +1,23 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import AppConfirmationDialog from '@/components/AppConfirmationDialog.vue'
+import AppErrorAlert from '@/components/AppErrorAlert.vue'
+import AppFieldErrors from '@/components/AppFieldErrors.vue'
 import { scheduledWorkApi, type ScheduledWorkDetailsDto } from '@/api/portal/scheduledWork'
-import { formatDateTime, useOperationState, usePortalRouteParams } from './operationView'
+import { fieldErrors, formatDateTime, toDateTimeLocal, useOperationState, usePortalRouteParams } from './operationView'
 
 const router = useRouter()
 const params = usePortalRouteParams()
-const { loading, saving, error, success, capture } = useOperationState()
+const { loading, saving, error, success, capture, notifySuccess } = useOperationState()
 const item = ref<ScheduledWorkDetailsDto>()
+const cancelOpen = ref(false)
+const deleteOpen = ref(false)
+const deleteConfirmation = ref('')
+const startActionAt = ref('')
+const completeActionAt = ref('')
+const fieldErrorMap = computed(() => error.value?.fieldErrors ?? {})
+const canDelete = computed(() => deleteConfirmation.value === 'DELETE')
 
 const load = async () => {
   loading.value = true
@@ -18,6 +28,8 @@ const load = async () => {
       params.ticketId.value,
       params.scheduledWorkId.value,
     )
+    startActionAt.value = toDateTimeLocal(item.value.realStart) || toDateTimeLocal(new Date().toISOString())
+    completeActionAt.value = toDateTimeLocal(item.value.realEnd) || toDateTimeLocal(new Date().toISOString())
   } catch (caught) {
     capture(caught)
   } finally {
@@ -25,18 +37,26 @@ const load = async () => {
   }
 }
 
-const actionAt = () => new Date().toISOString()
-
 const runTimedAction = async (action: 'start' | 'complete') => {
-  const confirmed = window.confirm(`${action === 'start' ? 'Start' : 'Complete'} this scheduled work?`)
-  if (!confirmed) return
+  if (saving.value) return
+  const actionAt = action === 'start' ? startActionAt.value : completeActionAt.value
+  if (!actionAt) {
+    error.value = {
+      status: 0,
+      title: 'Validation failed',
+      message: 'Enter the action time and try again.',
+      fieldErrors: { actionAt: ['Action time is required.'] },
+      raw: null,
+    }
+    return
+  }
   saving.value = true
   error.value = undefined
   try {
     await scheduledWorkApi[action](params.companySlug.value, params.ticketId.value, params.scheduledWorkId.value, {
-      actionAt: actionAt(),
+      actionAt: new Date(actionAt).toISOString(),
     })
-    success.value = action === 'start' ? 'Scheduled work started.' : 'Scheduled work completed.'
+    notifySuccess(action === 'start' ? 'Scheduled work started.' : 'Scheduled work completed.')
     await load()
   } catch (caught) {
     capture(caught)
@@ -46,12 +66,13 @@ const runTimedAction = async (action: 'start' | 'complete') => {
 }
 
 const cancel = async () => {
-  if (!window.confirm('Cancel this scheduled work?')) return
+  if (saving.value) return
   saving.value = true
   error.value = undefined
   try {
     await scheduledWorkApi.cancel(params.companySlug.value, params.ticketId.value, params.scheduledWorkId.value)
-    success.value = 'Scheduled work canceled.'
+    notifySuccess('Scheduled work canceled.')
+    cancelOpen.value = false
     await load()
   } catch (caught) {
     capture(caught)
@@ -61,11 +82,12 @@ const cancel = async () => {
 }
 
 const deleteItem = async () => {
-  if (!window.confirm('Delete this scheduled work? This action cannot be undone.')) return
+  if (!canDelete.value || saving.value) return
   saving.value = true
   error.value = undefined
   try {
     await scheduledWorkApi.delete(params.companySlug.value, params.ticketId.value, params.scheduledWorkId.value)
+    notifySuccess('Scheduled work deleted.')
     await router.push(`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work`)
   } catch (caught) {
     capture(caught)
@@ -80,7 +102,7 @@ onMounted(load)
 <template>
   <main class="operation-page">
     <p v-if="loading">Loading scheduled work...</p>
-    <section v-if="error" class="alert danger"><strong>{{ error.title }}</strong><p>{{ error.message }}</p></section>
+    <AppErrorAlert v-if="error" :error="error" />
     <p v-if="success" class="alert success">{{ success }}</p>
 
     <template v-if="item">
@@ -91,9 +113,7 @@ onMounted(load)
           <span class="badge">{{ item.workStatusLabel || '-' }}</span>
         </div>
         <div class="actions">
-          <button :disabled="saving" @click="runTimedAction('start')">Start</button>
-          <button :disabled="saving" @click="runTimedAction('complete')">Complete</button>
-          <button :disabled="saving" class="secondary" @click="cancel">Cancel work</button>
+          <button :disabled="saving" class="secondary" @click="cancelOpen = true">Cancel work</button>
           <RouterLink :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${params.scheduledWorkId.value}/edit`">Edit</RouterLink>
         </div>
       </header>
@@ -110,6 +130,22 @@ onMounted(load)
       </section>
 
       <section class="panel">
+        <h2>Work actions</h2>
+        <div class="action-forms">
+          <form class="inline-action" @submit.prevent="runTimedAction('start')">
+            <label>Actual start<input v-model="startActionAt" type="datetime-local" :aria-invalid="fieldErrors(fieldErrorMap, 'actionAt', 'ActionAt').length > 0" /></label>
+            <AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'actionAt', 'ActionAt')" />
+            <button :disabled="saving" type="submit">{{ saving ? 'Working...' : 'Start work' }}</button>
+          </form>
+          <form class="inline-action" @submit.prevent="runTimedAction('complete')">
+            <label>Actual end<input v-model="completeActionAt" type="datetime-local" :aria-invalid="fieldErrors(fieldErrorMap, 'actionAt', 'ActionAt').length > 0" /></label>
+            <AppFieldErrors :errors="fieldErrors(fieldErrorMap, 'actionAt', 'ActionAt')" />
+            <button :disabled="saving" type="submit">{{ saving ? 'Working...' : 'Complete work' }}</button>
+          </form>
+        </div>
+      </section>
+
+      <section class="panel">
         <div class="section-header">
           <div>
             <h2>Work logs</h2>
@@ -122,8 +158,33 @@ onMounted(load)
       <section class="panel danger-zone">
         <h2>Danger zone</h2>
         <p class="muted">Delete scheduled work only when no work logs exist.</p>
-        <button :disabled="saving" @click="deleteItem">Delete scheduled work</button>
+        <button :disabled="saving" @click="deleteOpen = true">Delete scheduled work</button>
       </section>
+
+      <AppConfirmationDialog
+        :open="cancelOpen"
+        title="Cancel scheduled work"
+        message="Cancel this scheduled work? This lifecycle action is applied immediately."
+        :pending="saving"
+        confirm-label="Cancel work"
+        destructive
+        @cancel="cancelOpen = false"
+        @confirm="cancel"
+      />
+
+      <dialog :open="deleteOpen" class="operation-dialog">
+        <form method="dialog" @submit.prevent="deleteItem">
+          <h2>Delete scheduled work</h2>
+          <p>This deletes the scheduled work record. Type DELETE to confirm this destructive action.</p>
+          <label>Confirmation<input v-model="deleteConfirmation" autocomplete="off" /></label>
+          <div class="actions">
+            <button type="button" class="secondary" :disabled="saving" @click="deleteOpen = false">Cancel</button>
+            <button type="submit" class="danger-button" :disabled="saving || !canDelete">
+              {{ saving ? 'Deleting...' : 'Delete scheduled work' }}
+            </button>
+          </div>
+        </form>
+      </dialog>
     </template>
   </main>
 </template>
@@ -135,14 +196,22 @@ onMounted(load)
 .eyebrow, .muted { color: #667085; }
 .eyebrow { margin: 0 0 .25rem; text-transform: uppercase; font-size: .75rem; font-weight: 700; }
 .actions { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.action-forms { display: grid; gap: 1rem; }
+.inline-action { display: grid; grid-template-columns: minmax(15rem, 1fr) auto; gap: .5rem; align-items: end; }
+.inline-action label { display: grid; gap: .35rem; font-weight: 600; }
 .badge { display: inline-block; border: 1px solid #b2ddff; background: #eff8ff; border-radius: 999px; padding: .15rem .5rem; }
 dl { display: grid; grid-template-columns: 10rem 1fr; gap: .65rem; }
 dt { font-weight: 700; }
 button, a { border-radius: 6px; padding: .5rem .75rem; }
 button { background: #155eef; color: #fff; border: 1px solid #155eef; }
 .secondary { background: #fff; color: #344054; border-color: #98a2b3; }
-.danger-zone button { background: #b42318; border-color: #b42318; }
+.danger-zone button, .danger-button { background: #b42318; border-color: #b42318; color: #fff; }
 .alert { border-radius: 8px; padding: .8rem; }
 .danger { background: #fef3f2; border: 1px solid #fecdca; }
 .success { background: #ecfdf3; border: 1px solid #abefc6; }
+.operation-dialog { border: 1px solid #d0d5dd; border-radius: 8px; padding: 1rem; max-width: 28rem; width: calc(100% - 2rem); position: fixed; inset: 50% auto auto 50%; transform: translate(-50%, -50%); z-index: 20; box-shadow: 0 24px 48px rgb(16 24 40 / .2); }
+.operation-dialog::backdrop { background: rgb(16 24 40 / .35); }
+.operation-dialog form { display: grid; gap: .9rem; }
+.operation-dialog label { display: grid; gap: .35rem; font-weight: 600; }
+@media (max-width: 700px) { .inline-action { grid-template-columns: 1fr; } }
 </style>
