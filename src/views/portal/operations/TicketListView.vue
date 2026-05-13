@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { lookupsApi } from '@/api/portal/lookups'
 import { ticketsApi, type ContextTicketsDto, type ManagementTicketsDto, type TicketContext } from '@/api/portal/tickets'
+import type { TicketOptionSetDto } from '@/types/api'
 import {
   formatDateTime,
   optionLabel,
@@ -12,6 +14,7 @@ import {
 const params = usePortalRouteParams()
 const { loading, error, success, capture } = useOperationState()
 const page = ref<ContextTicketsDto | ManagementTicketsDto>()
+const lookupOptions = ref<TicketOptionSetDto>({})
 const filter = reactive({
   search: '',
   statusId: '',
@@ -49,28 +52,71 @@ const title = computed(() => {
 })
 
 const tickets = computed(() => page.value?.tickets ?? [])
-const options = computed(() => page.value?.options ?? {})
+const options = computed(() => ({ ...lookupOptions.value, ...(page.value?.options ?? {}) }))
+const showCustomerFilter = computed(() => !context.value)
+const showPropertyFilter = computed(() => !context.value || context.value.type === 'customer' || context.value.type === 'resident')
+const showUnitFilter = computed(() => !context.value || context.value.type === 'customer' || context.value.type === 'property' || context.value.type === 'resident')
+
+const query = () => ({
+  Search: filter.search,
+  StatusId: filter.statusId,
+  PriorityId: filter.priorityId,
+  CategoryId: filter.categoryId,
+  CustomerId: filter.customerId,
+  PropertyId: filter.propertyId,
+  UnitId: filter.unitId,
+  ResidentId: filter.residentId,
+  VendorId: filter.vendorId,
+  DueFrom: filter.dueFrom,
+  DueTo: filter.dueTo,
+})
+
+const clearFilters = async () => {
+  Object.assign(filter, {
+    search: '',
+    statusId: '',
+    priorityId: '',
+    categoryId: '',
+    customerId: '',
+    propertyId: '',
+    unitId: '',
+    residentId: '',
+    vendorId: '',
+    dueFrom: '',
+    dueTo: '',
+  })
+  await load()
+}
+
+const customerPath = (ticket: { customerSlug?: string }) =>
+  ticket.customerSlug ? `/companies/${params.companySlug.value}/customers/${ticket.customerSlug}` : undefined
+
+const propertyPath = (ticket: { customerSlug?: string; propertySlug?: string }) =>
+  ticket.customerSlug && ticket.propertySlug
+    ? `/companies/${params.companySlug.value}/customers/${ticket.customerSlug}/properties/${ticket.propertySlug}`
+    : undefined
+
+const unitPath = (ticket: { customerSlug?: string; propertySlug?: string; unitSlug?: string }) =>
+  ticket.customerSlug && ticket.propertySlug && ticket.unitSlug
+    ? `/companies/${params.companySlug.value}/customers/${ticket.customerSlug}/properties/${ticket.propertySlug}/units/${ticket.unitSlug}`
+    : undefined
+
+const residentPath = (ticket: { residentIdCode?: string }) =>
+  ticket.residentIdCode ? `/companies/${params.companySlug.value}/residents/${ticket.residentIdCode}` : undefined
 
 const load = async () => {
   loading.value = true
   error.value = undefined
   try {
-    const query = {
-      search: filter.search,
-      statusId: filter.statusId,
-      priorityId: filter.priorityId,
-      categoryId: filter.categoryId,
-      customerId: filter.customerId,
-      propertyId: filter.propertyId,
-      unitId: filter.unitId,
-      residentId: filter.residentId,
-      vendorId: filter.vendorId,
-      dueFrom: filter.dueFrom,
-      dueTo: filter.dueTo,
-    }
-    page.value = context.value
-      ? await ticketsApi.listForContext(params.companySlug.value, context.value, query)
-      : await ticketsApi.list(params.companySlug.value, query)
+    const activeQuery = query()
+    const [loadedPage, loadedOptions] = await Promise.all([
+      context.value
+        ? ticketsApi.listForContext(params.companySlug.value, context.value, activeQuery)
+        : ticketsApi.list(params.companySlug.value, activeQuery),
+      lookupsApi.ticketOptions(params.companySlug.value, activeQuery),
+    ])
+    page.value = loadedPage
+    lookupOptions.value = loadedOptions
   } catch (caught) {
     capture(caught)
   } finally {
@@ -79,6 +125,10 @@ const load = async () => {
 }
 
 onMounted(load)
+watch(
+  () => [params.companySlug.value, params.customerSlug.value, params.propertySlug.value, params.unitSlug.value, params.residentIdCode.value],
+  () => void load(),
+)
 </script>
 
 <template>
@@ -88,7 +138,7 @@ onMounted(load)
         <p class="eyebrow">{{ page?.companyName ?? params.companySlug.value }}</p>
         <h1>{{ title }}</h1>
       </div>
-      <RouterLink class="primary" :to="`/companies/${params.companySlug.value}/tickets/new`">New ticket</RouterLink>
+      <RouterLink class="primary" :to="`/companies/${params.companySlug.value}/tickets/new`">Create ticket</RouterLink>
     </header>
 
     <p v-if="success" class="alert success">{{ success }}</p>
@@ -99,7 +149,10 @@ onMounted(load)
     </section>
 
     <form class="panel filters" @submit.prevent="load">
-      <input v-model="filter.search" type="search" placeholder="Search tickets" />
+      <label>
+        <span>Search</span>
+        <input v-model="filter.search" type="search" placeholder="Search tickets" />
+      </label>
       <select v-model="filter.statusId">
         <option value="">Any status</option>
         <option v-for="option in options.statuses" :key="optionValue(option)" :value="optionValue(option)">
@@ -118,7 +171,48 @@ onMounted(load)
           {{ optionLabel(option) }}
         </option>
       </select>
-      <button type="submit" :disabled="loading">Apply</button>
+      <select v-if="showCustomerFilter" v-model="filter.customerId">
+        <option value="">Any customer</option>
+        <option v-for="option in options.customers" :key="optionValue(option)" :value="optionValue(option)">
+          {{ optionLabel(option) }}
+        </option>
+      </select>
+      <select v-if="showPropertyFilter" v-model="filter.propertyId">
+        <option value="">Any property</option>
+        <option v-for="option in options.properties" :key="optionValue(option)" :value="optionValue(option)">
+          {{ optionLabel(option) }}
+        </option>
+      </select>
+      <select v-if="showUnitFilter" v-model="filter.unitId">
+        <option value="">Any unit</option>
+        <option v-for="option in options.units" :key="optionValue(option)" :value="optionValue(option)">
+          {{ optionLabel(option) }}
+        </option>
+      </select>
+      <select v-if="!context || context.type !== 'resident'" v-model="filter.residentId">
+        <option value="">Any resident</option>
+        <option v-for="option in options.residents" :key="optionValue(option)" :value="optionValue(option)">
+          {{ optionLabel(option) }}
+        </option>
+      </select>
+      <select v-model="filter.vendorId">
+        <option value="">Any vendor</option>
+        <option v-for="option in options.vendors" :key="optionValue(option)" :value="optionValue(option)">
+          {{ optionLabel(option) }}
+        </option>
+      </select>
+      <label>
+        <span>Due from</span>
+        <input v-model="filter.dueFrom" type="date" />
+      </label>
+      <label>
+        <span>Due to</span>
+        <input v-model="filter.dueTo" type="date" />
+      </label>
+      <div class="filter-actions">
+        <button type="submit" :disabled="loading">{{ loading ? 'Applying...' : 'Apply' }}</button>
+        <button type="button" class="secondary" :disabled="loading" @click="clearFilters">Clear</button>
+      </div>
     </form>
 
     <section class="panel">
@@ -150,8 +244,20 @@ onMounted(load)
               <td>{{ ticket.priorityLabel || '-' }}</td>
               <td>{{ ticket.categoryLabel || '-' }}</td>
               <td>
-                <div>{{ ticket.customerName || '-' }}</div>
-                <div class="muted">{{ ticket.propertyName || ticket.unitNr || ticket.residentName || '' }}</div>
+                <div>
+                  <RouterLink v-if="customerPath(ticket)" :to="customerPath(ticket)!">{{ ticket.customerName }}</RouterLink>
+                  <span v-else>{{ ticket.customerName || '-' }}</span>
+                </div>
+                <div class="muted">
+                  <RouterLink v-if="propertyPath(ticket)" :to="propertyPath(ticket)!">{{ ticket.propertyName }}</RouterLink>
+                  <span v-else>{{ ticket.propertyName || '' }}</span>
+                  <span v-if="ticket.unitNr"> / </span>
+                  <RouterLink v-if="unitPath(ticket)" :to="unitPath(ticket)!">{{ ticket.unitNr }}</RouterLink>
+                  <span v-else>{{ ticket.unitNr || '' }}</span>
+                  <span v-if="ticket.residentName"> / </span>
+                  <RouterLink v-if="residentPath(ticket)" :to="residentPath(ticket)!">{{ ticket.residentName }}</RouterLink>
+                  <span v-else>{{ ticket.residentName || '' }}</span>
+                </div>
               </td>
               <td>{{ ticket.vendorName || '-' }}</td>
               <td>{{ formatDateTime(ticket.dueAt) }}</td>

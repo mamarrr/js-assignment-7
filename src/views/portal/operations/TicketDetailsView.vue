@@ -1,20 +1,33 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import AppConfirmationDialog from '@/components/AppConfirmationDialog.vue'
 import { ticketsApi, ticketLifecycle, type TicketDetailsDto, type TicketTransitionAvailabilityDto } from '@/api/portal/tickets'
+import { useNotificationStore } from '@/stores/notifications'
 import { formatDateTime, useOperationState, usePortalRouteParams } from './operationView'
 
 const router = useRouter()
+const notifications = useNotificationStore()
 const params = usePortalRouteParams()
-const { loading, saving, error, success, capture } = useOperationState()
+const { loading, saving, error, capture } = useOperationState()
 const ticket = ref<TicketDetailsDto>()
 const transition = ref<TicketTransitionAvailabilityDto>()
+const advanceOpen = ref(false)
+const deleteOpen = ref(false)
+const deleteConfirmation = ref('')
 
 const blockingReasons = computed(
   () => transition.value?.blockingReasons ?? ticket.value?.transitionBlockingReasons ?? [],
 )
 const canAdvance = computed(() => transition.value?.canAdvance ?? ticket.value?.canAdvanceStatus ?? false)
 const nextStatusLabel = computed(() => transition.value?.nextStatusLabel ?? ticket.value?.nextStatusLabel)
+const normalizedStatus = computed(() => String(ticket.value?.statusCode ?? ticket.value?.statusLabel ?? '').toLowerCase())
+const canDelete = computed(() => deleteConfirmation.value === 'DELETE')
+
+const statusMatches = (step: string) => {
+  const normalizedStep = step.toLowerCase().replace(/\s+/g, '')
+  return normalizedStatus.value.replace(/[_\-\s]+/g, '') === normalizedStep
+}
 
 const load = async () => {
   loading.value = true
@@ -34,14 +47,13 @@ const load = async () => {
 }
 
 const advance = async () => {
-  if (!nextStatusLabel.value) return
-  const confirmed = window.confirm(`Advance this ticket to ${nextStatusLabel.value}?`)
-  if (!confirmed) return
+  if (!nextStatusLabel.value || saving.value) return
   saving.value = true
   error.value = undefined
   try {
     await ticketsApi.advanceStatus(params.companySlug.value, params.ticketId.value)
-    success.value = 'Ticket status advanced.'
+    notifications.push({ tone: 'success', title: 'Ticket status advanced.' })
+    advanceOpen.value = false
     await load()
   } catch (caught) {
     capture(caught)
@@ -51,12 +63,14 @@ const advance = async () => {
 }
 
 const deleteTicket = async () => {
-  const confirmed = window.confirm('Delete this ticket? This action cannot be undone.')
-  if (!confirmed) return
+  if (!canDelete.value || saving.value) return
   saving.value = true
   error.value = undefined
   try {
-    await ticketsApi.delete(params.companySlug.value, params.ticketId.value)
+    await ticketsApi.delete(params.companySlug.value, params.ticketId.value, {
+      deleteConfirmation: deleteConfirmation.value,
+    })
+    notifications.push({ tone: 'success', title: 'Ticket deleted.' })
     await router.push(`/companies/${params.companySlug.value}/tickets`)
   } catch (caught) {
     capture(caught)
@@ -76,7 +90,6 @@ onMounted(load)
       <p>{{ error.message }}</p>
       <details v-if="error.traceId"><summary>Technical details</summary>Trace ID: {{ error.traceId }}</details>
     </section>
-    <p v-if="success" class="alert success">{{ success }}</p>
 
     <template v-if="ticket">
       <header class="operation-header panel">
@@ -90,7 +103,7 @@ onMounted(load)
           </div>
         </div>
         <div class="actions">
-          <button v-if="nextStatusLabel && canAdvance" :disabled="saving" @click="advance">
+          <button v-if="nextStatusLabel && canAdvance" :disabled="saving" @click="advanceOpen = true">
             Advance to {{ nextStatusLabel }}
           </button>
           <RouterLink :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/edit`">Edit</RouterLink>
@@ -105,7 +118,7 @@ onMounted(load)
       </section>
 
       <section class="panel lifecycle">
-        <span v-for="step in ticketLifecycle" :key="step" :class="{ active: step === ticket.statusLabel }">{{ step }}</span>
+        <span v-for="step in ticketLifecycle" :key="step" :class="{ active: statusMatches(step) }">{{ step }}</span>
       </section>
 
       <div class="grid">
@@ -154,6 +167,7 @@ onMounted(load)
               <td>{{ formatDateTime(work.scheduledEnd) }}</td>
               <td>
                 <RouterLink :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${work.scheduledWorkId}`">Details</RouterLink>
+                <RouterLink :to="`/companies/${params.companySlug.value}/tickets/${params.ticketId.value}/scheduled-work/${work.scheduledWorkId}/work-logs`">Work logs</RouterLink>
               </td>
             </tr>
           </tbody>
@@ -163,8 +177,37 @@ onMounted(load)
       <section class="panel danger-zone">
         <h2>Danger zone</h2>
         <p class="muted">Delete this ticket only when it was created in error.</p>
-        <button :disabled="saving" @click="deleteTicket">Delete ticket</button>
+        <button :disabled="saving" @click="deleteOpen = true">Delete ticket</button>
       </section>
+
+      <AppConfirmationDialog
+        :open="advanceOpen"
+        title="Advance ticket status"
+        :message="`Advance this ticket to ${nextStatusLabel}? This lifecycle action is applied immediately.`"
+        :pending="saving"
+        confirm-label="Advance status"
+        @cancel="advanceOpen = false"
+        @confirm="advance"
+      />
+
+      <dialog :open="deleteOpen" class="ticket-dialog">
+        <form method="dialog" @submit.prevent="deleteTicket">
+          <h2>Delete ticket</h2>
+          <p>
+            This deletes the ticket record. Type DELETE to confirm this destructive action.
+          </p>
+          <label>
+            Confirmation
+            <input v-model="deleteConfirmation" autocomplete="off" />
+          </label>
+          <div class="actions">
+            <button type="button" class="secondary" :disabled="saving" @click="deleteOpen = false">Cancel</button>
+            <button type="submit" class="danger-button" :disabled="saving || !canDelete">
+              {{ saving ? 'Deleting...' : 'Delete ticket' }}
+            </button>
+          </div>
+        </form>
+      </dialog>
     </template>
   </main>
 </template>
@@ -186,9 +229,15 @@ table { width: 100%; border-collapse: collapse; }
 th, td { padding: .7rem; border-bottom: 1px solid #eaecf0; text-align: left; }
 button, a { border-radius: 6px; padding: .5rem .75rem; }
 button { background: #155eef; color: #fff; border: 1px solid #155eef; }
-.danger-zone button { background: #b42318; border-color: #b42318; }
+.danger-zone button, .danger-button { background: #b42318; border-color: #b42318; color: #fff; }
+.secondary { background: #fff; color: #344054; border-color: #98a2b3; }
 .alert { border-radius: 8px; padding: .8rem; }
 .danger { background: #fef3f2; border: 1px solid #fecdca; }
 .success { background: #ecfdf3; border: 1px solid #abefc6; }
 .warning { background: #fffaeb; border: 1px solid #fedf89; }
+.ticket-dialog { border: 1px solid #d0d5dd; border-radius: 8px; padding: 1rem; max-width: 28rem; width: calc(100% - 2rem); position: fixed; inset: 50% auto auto 50%; transform: translate(-50%, -50%); z-index: 20; box-shadow: 0 24px 48px rgb(16 24 40 / .2); }
+.ticket-dialog::backdrop { background: rgb(16 24 40 / .35); }
+.ticket-dialog form { display: grid; gap: .9rem; }
+.ticket-dialog label { display: grid; gap: .35rem; font-weight: 600; }
+.ticket-dialog input { border: 1px solid #98a2b3; border-radius: 6px; padding: .5rem .7rem; font: inherit; }
 </style>

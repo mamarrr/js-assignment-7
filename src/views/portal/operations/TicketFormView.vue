@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, reactive } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { ticketsApi, type TicketFormDto } from '@/api/portal/tickets'
+import { useNotificationStore } from '@/stores/notifications'
 import {
   emptyToNull,
   fieldErrors,
@@ -14,9 +15,11 @@ import {
 } from './operationView'
 
 const router = useRouter()
+const notifications = useNotificationStore()
 const params = usePortalRouteParams()
-const { loading, saving, error, success, capture } = useOperationState()
+const { loading, saving, error, capture } = useOperationState()
 const isEdit = computed(() => Boolean(params.ticketId.value))
+const bootstrap = ref<TicketFormDto>({})
 const form = reactive({
   ticketNr: '',
   title: '',
@@ -31,12 +34,19 @@ const form = reactive({
   vendorId: '',
   dueAt: '',
 })
-let bootstrap: TicketFormDto = {}
 
-const options = computed(() => bootstrap.options ?? {})
+const options = computed(() => bootstrap.value.options ?? {})
+const summaryErrors = computed(() => fieldErrors(error.value?.fieldErrors ?? {}, '', 'model', 'Model', '$'))
+
+const optionQuery = () => ({
+  CustomerId: emptyToNull(form.customerId),
+  PropertyId: emptyToNull(form.propertyId),
+  UnitId: emptyToNull(form.unitId),
+  CategoryId: emptyToNull(form.ticketCategoryId),
+})
 
 const fill = (dto: TicketFormDto) => {
-  bootstrap = dto
+  bootstrap.value = dto
   form.ticketNr = dto.ticketNr ?? ''
   form.title = dto.title ?? ''
   form.description = dto.description ?? ''
@@ -49,6 +59,29 @@ const fill = (dto: TicketFormDto) => {
   form.residentId = dto.residentId ?? ''
   form.vendorId = dto.vendorId ?? ''
   form.dueAt = toDateTimeLocal(dto.dueAt)
+}
+
+const refreshOptions = async () => {
+  if (loading.value) return
+  try {
+    bootstrap.value = {
+      ...bootstrap.value,
+      options: await ticketsApi.options(params.companySlug.value, optionQuery()),
+    }
+  } catch (caught) {
+    capture(caught)
+  }
+}
+
+const onCustomerChanged = async () => {
+  form.propertyId = ''
+  form.unitId = ''
+  await refreshOptions()
+}
+
+const onPropertyChanged = async () => {
+  form.unitId = ''
+  await refreshOptions()
 }
 
 const load = async () => {
@@ -68,6 +101,7 @@ const load = async () => {
 }
 
 const submit = async () => {
+  if (saving.value) return
   saving.value = true
   error.value = undefined
   try {
@@ -91,7 +125,7 @@ const submit = async () => {
         })
       : await ticketsApi.create(params.companySlug.value, body)
 
-    success.value = isEdit.value ? 'Ticket updated.' : 'Ticket created.'
+    notifications.push({ tone: 'success', title: isEdit.value ? 'Ticket updated.' : 'Ticket created.' })
     await router.push(`/companies/${params.companySlug.value}/tickets/${saved.ticketId ?? params.ticketId.value}`)
   } catch (caught) {
     capture(caught)
@@ -110,21 +144,36 @@ onMounted(load)
       <h1>{{ isEdit ? 'Edit ticket' : 'New ticket' }}</h1>
     </header>
 
-    <p v-if="success" class="alert success">{{ success }}</p>
     <section v-if="error" class="alert danger" role="alert">
       <strong>{{ error.title }}</strong>
       <p>{{ error.message }}</p>
+      <ul v-if="summaryErrors.length > 0">
+        <li v-for="message in summaryErrors" :key="message">{{ message }}</li>
+      </ul>
+      <details v-if="error.traceId"><summary>Technical details</summary>Trace ID: {{ error.traceId }}</details>
     </section>
     <p v-if="loading">Loading ticket form...</p>
 
     <form v-else class="panel form-grid" @submit.prevent="submit">
-      <label>Ticket number<input v-model="form.ticketNr" /></label>
-      <label class="wide">Title<input v-model="form.title" /></label>
-      <label class="full">Description<textarea v-model="form.description" rows="5" /></label>
+      <label>
+        Ticket number
+        <input v-model="form.ticketNr" />
+        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'ticketNr', 'TicketNr')" :key="message">{{ message }}</small>
+      </label>
+      <label class="wide">
+        Title
+        <input v-model="form.title" />
+        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'title', 'Title')" :key="message">{{ message }}</small>
+      </label>
+      <label class="full">
+        Description
+        <textarea v-model="form.description" rows="5" />
+        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'description', 'Description')" :key="message">{{ message }}</small>
+      </label>
 
       <label>
         Category
-        <select v-model="form.ticketCategoryId">
+        <select v-model="form.ticketCategoryId" @change="refreshOptions">
           <option value="">Select category</option>
           <option v-for="option in options.categories" :key="optionValue(option)" :value="optionValue(option)">
             {{ optionLabel(option) }}
@@ -141,6 +190,7 @@ onMounted(load)
             {{ optionLabel(option) }}
           </option>
         </select>
+        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'ticketStatusId', 'TicketStatusId')" :key="message">{{ message }}</small>
       </label>
 
       <label>
@@ -151,14 +201,54 @@ onMounted(load)
             {{ optionLabel(option) }}
           </option>
         </select>
+        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'ticketPriorityId', 'TicketPriorityId')" :key="message">{{ message }}</small>
       </label>
 
-      <label>Customer<select v-model="form.customerId"><option value="">Select customer</option><option v-for="option in options.customers" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option></select></label>
-      <label>Property<select v-model="form.propertyId"><option value="">Select property</option><option v-for="option in options.properties" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option></select></label>
-      <label>Unit<select v-model="form.unitId"><option value="">Select unit</option><option v-for="option in options.units" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option></select></label>
-      <label>Resident<select v-model="form.residentId"><option value="">Select resident</option><option v-for="option in options.residents" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option></select></label>
-      <label>Vendor<select v-model="form.vendorId"><option value="">Select vendor</option><option v-for="option in options.vendors" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option></select></label>
-      <label>Due at<input v-model="form.dueAt" type="datetime-local" /></label>
+      <label>
+        Customer
+        <select v-model="form.customerId" @change="onCustomerChanged">
+          <option value="">Select customer</option>
+          <option v-for="option in options.customers" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option>
+        </select>
+        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'customerId', 'CustomerId')" :key="message">{{ message }}</small>
+      </label>
+      <label>
+        Property
+        <select v-model="form.propertyId" @change="onPropertyChanged">
+          <option value="">Select property</option>
+          <option v-for="option in options.properties" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option>
+        </select>
+        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'propertyId', 'PropertyId')" :key="message">{{ message }}</small>
+      </label>
+      <label>
+        Unit
+        <select v-model="form.unitId" @change="refreshOptions">
+          <option value="">Select unit</option>
+          <option v-for="option in options.units" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option>
+        </select>
+        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'unitId', 'UnitId')" :key="message">{{ message }}</small>
+      </label>
+      <label>
+        Resident
+        <select v-model="form.residentId" @change="refreshOptions">
+          <option value="">Select resident</option>
+          <option v-for="option in options.residents" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option>
+        </select>
+        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'residentId', 'ResidentId')" :key="message">{{ message }}</small>
+      </label>
+      <label>
+        Vendor
+        <select v-model="form.vendorId">
+          <option value="">Select vendor</option>
+          <option v-for="option in options.vendors" :key="optionValue(option)" :value="optionValue(option)">{{ optionLabel(option) }}</option>
+        </select>
+        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'vendorId', 'VendorId')" :key="message">{{ message }}</small>
+      </label>
+      <label>
+        Due at
+        <input v-model="form.dueAt" type="datetime-local" />
+        <small v-for="message in fieldErrors(error?.fieldErrors ?? {}, 'dueAt', 'DueAt')" :key="message">{{ message }}</small>
+      </label>
 
       <div class="actions full">
         <button type="submit" :disabled="saving">{{ saving ? 'Saving...' : 'Save ticket' }}</button>

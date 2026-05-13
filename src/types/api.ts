@@ -205,17 +205,36 @@ export interface TicketOptionSetDto extends ApiRecord {
   vendors?: ApiRecord[]
 }
 
+export interface TicketFilterDto extends ApiRecord {
+  search?: string
+  statusId?: string
+  priorityId?: string
+  categoryId?: string
+  customerId?: string
+  propertyId?: string
+  unitId?: string
+  residentId?: string
+  vendorId?: string
+  dueFrom?: string
+  dueTo?: string
+}
+
 export interface TicketListItemDto extends ApiRecord {
   ticketId?: string
   ticketNr?: string
   title?: string
+  statusCode?: string
   statusLabel?: string
   priorityLabel?: string
   categoryLabel?: string
   customerName?: string
+  customerSlug?: string
   propertyName?: string
+  propertySlug?: string
   unitNr?: string
+  unitSlug?: string
   residentName?: string
+  residentIdCode?: string
   vendorName?: string
   dueAt?: string
   createdAt?: string
@@ -225,7 +244,16 @@ export interface ContextTicketsDto extends ApiRecord {
   companyName?: string
   contextName?: string
   tickets?: TicketListItemDto[]
+  filter?: TicketFilterDto
   options?: TicketOptionSetDto
+  customerSlug?: string
+  customerName?: string
+  propertySlug?: string
+  propertyName?: string
+  unitSlug?: string
+  unitName?: string
+  residentIdCode?: string
+  residentName?: string
 }
 
 export interface ManagementTicketsDto extends ContextTicketsDto {}
@@ -239,8 +267,11 @@ export interface TicketScheduledWorkSummaryDto extends ApiRecord {
 }
 
 export interface TicketDetailsDto extends TicketListItemDto {
+  companySlug?: string
+  companyName?: string
   description?: string
   closedAt?: string
+  nextStatusCode?: string
   canAdvanceStatus?: boolean
   nextStatusLabel?: string
   transitionBlockingReasons?: string[]
@@ -248,6 +279,9 @@ export interface TicketDetailsDto extends TicketListItemDto {
 }
 
 export interface TicketTransitionAvailabilityDto extends ApiRecord {
+  ticketId?: string
+  currentStatusCode?: string
+  nextStatusCode?: string
   canAdvance?: boolean
   nextStatusLabel?: string
   blockingReasons?: string[]
@@ -269,6 +303,24 @@ export interface TicketFormDto extends ApiRecord {
   vendorId?: string
   dueAt?: string
   options?: TicketOptionSetDto
+}
+
+export interface CreateTicketDto extends ApiRecord {
+  ticketNr?: string | null
+  title?: string | null
+  description?: string | null
+  ticketCategoryId?: string
+  ticketPriorityId?: string
+  customerId?: string | null
+  propertyId?: string | null
+  unitId?: string | null
+  residentId?: string | null
+  vendorId?: string | null
+  dueAt?: string | null
+}
+
+export interface UpdateTicketDto extends CreateTicketDto {
+  ticketStatusId?: string
 }
 
 export interface ScheduledWorkListItemDto extends ApiRecord {

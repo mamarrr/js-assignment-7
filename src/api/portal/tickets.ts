@@ -1,11 +1,16 @@
 import { portalApi } from './generic'
 import type {
-  ApiRecord,
   ContextTicketsDto,
+  CreateTicketDto,
+  DeleteConfirmationDto,
   ManagementTicketsDto,
+  TicketDto,
   TicketDetailsDto,
+  TicketFilterDto,
   TicketFormDto,
+  TicketOptionSetDto,
   TicketTransitionAvailabilityDto,
+  UpdateTicketDto,
 } from '@/types/api'
 
 export type TicketContext =
@@ -18,7 +23,9 @@ export type {
   ContextTicketsDto,
   ManagementTicketsDto,
   TicketDetailsDto,
+  TicketFilterDto,
   TicketFormDto,
+  TicketOptionSetDto,
   TicketTransitionAvailabilityDto,
 }
 
@@ -39,35 +46,37 @@ const contextPath = (context: TicketContext) => {
 export const ticketLifecycle = ['Created', 'Assigned', 'Scheduled', 'In Progress', 'Completed', 'Closed']
 
 export const ticketsApi = {
-  list: (companySlug: string, query?: Record<string, unknown>) =>
+  list: (companySlug: string, query?: TicketFilterDto) =>
     portalApi.get<ManagementTicketsDto>(ticketsBase, { companySlug }, query),
-  listForContext: (companySlug: string, context: TicketContext, query?: Record<string, unknown>) =>
+  listForContext: (companySlug: string, context: TicketContext, query?: TicketFilterDto) =>
     portalApi.get<ContextTicketsDto>(contextPath(context), { companySlug, ...context }, query),
-  form: (companySlug: string) => portalApi.get<TicketFormDto>(`${ticketsBase}/form`, { companySlug }),
-  options: (companySlug: string) => portalApi.get<ApiRecord>(`${ticketsBase}/options`, { companySlug }),
+  form: (companySlug: string, query?: Record<string, unknown>) =>
+    portalApi.get<TicketFormDto>(`${ticketsBase}/form`, { companySlug }, query),
+  options: (companySlug: string, query?: Record<string, unknown>) =>
+    portalApi.get<TicketOptionSetDto>(`${ticketsBase}/options`, { companySlug }, query),
   propertyOptions: (companySlug: string, query?: Record<string, unknown>) =>
-    portalApi.get<ApiRecord>(`${ticketsBase}/options/properties`, { companySlug }, query),
+    portalApi.get<TicketOptionSetDto>(`${ticketsBase}/options/properties`, { companySlug }, query),
   unitOptions: (companySlug: string, query?: Record<string, unknown>) =>
-    portalApi.get<ApiRecord>(`${ticketsBase}/options/units`, { companySlug }, query),
+    portalApi.get<TicketOptionSetDto>(`${ticketsBase}/options/units`, { companySlug }, query),
   residentOptions: (companySlug: string, query?: Record<string, unknown>) =>
-    portalApi.get<ApiRecord>(`${ticketsBase}/options/residents`, { companySlug }, query),
+    portalApi.get<TicketOptionSetDto>(`${ticketsBase}/options/residents`, { companySlug }, query),
   vendorOptions: (companySlug: string, query?: Record<string, unknown>) =>
-    portalApi.get<ApiRecord>(`${ticketsBase}/options/vendors`, { companySlug }, query),
-  create: (companySlug: string, body: ApiRecord) =>
-    portalApi.post<TicketDetailsDto>(ticketsBase, { companySlug }, body),
+    portalApi.get<TicketOptionSetDto>(`${ticketsBase}/options/vendors`, { companySlug }, query),
+  create: (companySlug: string, body: CreateTicketDto) =>
+    portalApi.post<TicketDto>(ticketsBase, { companySlug }, body),
   detail: (companySlug: string, ticketId: string) =>
     portalApi.get<TicketDetailsDto>(ticketBase, { companySlug, ticketId }),
   editForm: (companySlug: string, ticketId: string) =>
     portalApi.get<TicketFormDto>(`${ticketBase}/form`, { companySlug, ticketId }),
-  update: (companySlug: string, ticketId: string, body: ApiRecord) =>
-    portalApi.put<TicketDetailsDto>(ticketBase, { companySlug, ticketId }, body),
-  delete: (companySlug: string, ticketId: string, body?: ApiRecord) =>
-    portalApi.delete<void>(ticketBase, { companySlug, ticketId }, body),
+  update: (companySlug: string, ticketId: string, body: UpdateTicketDto) =>
+    portalApi.put<TicketDto>(ticketBase, { companySlug, ticketId }, body),
+  delete: (companySlug: string, ticketId: string, _confirmation?: DeleteConfirmationDto) =>
+    portalApi.delete<void>(ticketBase, { companySlug, ticketId }),
   transitionAvailability: (companySlug: string, ticketId: string) =>
     portalApi.get<TicketTransitionAvailabilityDto>(`${ticketBase}/transition-availability`, {
       companySlug,
       ticketId,
     }),
-  advanceStatus: (companySlug: string, ticketId: string, body?: ApiRecord) =>
-    portalApi.post<TicketDetailsDto>(`${ticketBase}/advance-status`, { companySlug, ticketId }, body),
+  advanceStatus: (companySlug: string, ticketId: string) =>
+    portalApi.post<TicketDto>(`${ticketBase}/advance-status`, { companySlug, ticketId }),
 }
