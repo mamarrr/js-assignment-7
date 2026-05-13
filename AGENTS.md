@@ -32,7 +32,12 @@ Razor reference pack:
 - `mvc-views/Portal/Views`
 - `mvc-views/Shared`
 
-Use the Razor files as product and layout references. Copy page hierarchy, visual patterns, table/form composition, empty states, confirmation flows, app chrome, breadcrumbs, workspace switching, and contextual navigation where they still match Swagger-backed capabilities.
+CSS reference pack:
+- `mvc-views/site.css`
+- `mvc-views/management-ui.css`
+- `mvc-views/shared/Views/Shared/_Layout.cshtml.css`
+
+Use the Razor and CSS files as product, layout, visual, and styling references. Copy page hierarchy, visual patterns, table/form composition, empty states, confirmation flows, app chrome, breadcrumbs, workspace switching, and contextual navigation where they still match Swagger-backed capabilities.
 
 When translating Razor to Vue:
 - Replace Razor tag helpers with Vue components and router links.
@@ -42,7 +47,7 @@ When translating Razor to Vue:
 - Replace server routing with Vue Router.
 - Replace cookie context switching with `/api/v1/workspaces` and `/api/v1/workspaces/select`.
 
-Do not depend on `.cshtml` at runtime.
+Do not depend on `.cshtml` or the MVC CSS files at runtime. They are references only and must not be imported directly into the Vue SPA.
 
 ## 4. Product Boundaries
 

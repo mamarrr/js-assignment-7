@@ -2,13 +2,13 @@
 
 ## Summary
 
-Build the full authenticated Vue 3 + TypeScript + Vite SPA described by `AGENTS.md`, using `backend-swagger.json` as the API contract and the Razor files under `mvc-views/` as product/layout references. The current repo is still the default Vue scaffold, and `plans/IMPLEMENTATION_PLAN.md` is empty, so implementation starts from a clean frontend baseline.
+Build the full authenticated Vue 3 + TypeScript + Vite SPA described by `AGENTS.md`, using `backend-swagger.json` as the API contract and the Razor views plus MVC CSS files under `mvc-views/` as product, layout, visual, and styling references. The current repo is still the default Vue scaffold, and `plans/IMPLEMENTATION_PLAN.md` is empty, so implementation starts from a clean frontend baseline.
 
 Each phase is sized so an AI agent can execute it independently, with handoff notes and acceptance criteria. Agents must not implement Admin/SystemAdmin features, must not add runtime dependencies, and must not write tests while the repository override remains active.
 
 ## Agent Execution Rules
 
-- Before each phase, read `AGENTS.md`, `backend-swagger.json`, and the Razor views relevant to that phase.
+- Before each phase, read `AGENTS.md`, `backend-swagger.json`, the Razor views relevant to that phase, and the MVC CSS reference files (`mvc-views/site.css`, `mvc-views/management-ui.css`, and `mvc-views/shared/Views/Shared/_Layout.cshtml.css`).
 - Keep all frontend-owned static UI text in English.
 - Use only Vue 3, TypeScript, Vite, Vue Router, Pinia, ESLint, Prettier, and native `fetch`.
 - Do not add Axios, UI libraries, localization frameworks, test frameworks, or runtime dependencies.
@@ -24,7 +24,7 @@ Key work:
 - Create the planned folder structure under `src/api`, `src/components`, `src/layouts`, `src/router`, `src/stores`, `src/types`, and `src/views`.
 - Replace the default `App.vue` with router-driven application composition.
 - Add shared UI primitives for page loading, empty state, error alert, field errors, confirmation dialog, form actions, breadcrumbs, and notifications.
-- Add baseline CSS for a responsive operational UI modeled after the MVC chrome, without Admin/SystemAdmin links.
+- Add baseline CSS for a responsive operational UI modeled after the MVC chrome and MVC CSS references, without Admin/SystemAdmin links.
 - Keep styling local/simple; do not introduce a CSS framework.
 
 Acceptance:
@@ -232,4 +232,4 @@ Acceptance:
 - The existing empty `plans/IMPLEMENTATION_PLAN.md` should be replaced with this plan during implementation.
 - Runtime dependencies remain limited to the stack already approved in `AGENTS.md`.
 - Tests are intentionally excluded until the repository override changes.
-- Razor views are product/layout references only and are not used at runtime.
+- Razor views and MVC CSS files are product, layout, visual, and style references only and are not used at runtime.
