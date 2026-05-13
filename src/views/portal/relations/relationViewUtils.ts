@@ -49,10 +49,16 @@ export const apiMessage = (error: ApiError | Error | null) => {
 
 export const fieldError = (error: ApiError | Error | null, field: string) => {
   const apiError = error as ApiError | null
+  const lowerField = field.toLowerCase()
+  const matchingKey = Object.keys(apiError?.fieldErrors ?? {}).find((key) => {
+    const lowerKey = key.toLowerCase()
+    return lowerKey === lowerField || lowerKey.endsWith(`.${lowerField}`) || lowerKey.endsWith(`$.${lowerField}`)
+  })
   const errors =
     apiError?.fieldErrors?.[field] ??
     apiError?.fieldErrors?.[field.charAt(0).toUpperCase() + field.slice(1)] ??
-    apiError?.fieldErrors?.[`$.${field}`]
+    apiError?.fieldErrors?.[`$.${field}`] ??
+    (matchingKey ? apiError?.fieldErrors?.[matchingKey] : undefined)
   return Array.isArray(errors) ? errors.join(' ') : ''
 }
 

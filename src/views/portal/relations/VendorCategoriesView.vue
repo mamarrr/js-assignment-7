@@ -5,7 +5,16 @@ import {
   type VendorCategoryAssignmentDto,
   type VendorCategoryAssignmentListDto,
 } from '@/api/portal/vendorCategories'
-import { apiMessage, asArray, optionId, optionLabel, useAsyncState, useRouteParam } from './relationViewUtils'
+import {
+  apiMessage,
+  asArray,
+  fieldError,
+  optionId,
+  optionLabel,
+  traceId,
+  useAsyncState,
+  useRouteParam,
+} from './relationViewUtils'
 
 const companySlug = useRouteParam('companySlug')
 const vendorId = useRouteParam('vendorId')
@@ -17,7 +26,7 @@ const form = reactive({ ticketCategoryId: '', notes: '' })
 const editForm = reactive({ notes: '' })
 
 const scope = computed(() => ({ companySlug: companySlug.value, vendorId: vendorId.value }))
-const categories = computed(() => asArray<VendorCategoryAssignmentDto>(page.value?.categories ?? page.value?.assignedCategories))
+const categories = computed(() => asArray<VendorCategoryAssignmentDto>(page.value?.assignments))
 const availableCategories = computed(() => asArray(page.value?.availableCategories))
 
 const load = async () => {
@@ -25,6 +34,7 @@ const load = async () => {
 }
 
 const assign = async () => {
+  if (state.pending.value) return
   await state.run(
     async () => {
       page.value = await vendorCategoriesApi.assign(scope.value, {
@@ -45,7 +55,7 @@ const startEdit = (category: VendorCategoryAssignmentDto) => {
 
 const saveEdit = async () => {
   const categoryId = String(editing.value?.ticketCategoryId ?? '')
-  if (!categoryId) return
+  if (state.pending.value || !categoryId) return
   await state.run(
     async () => {
       page.value = await vendorCategoriesApi.update(scope.value, categoryId, { notes: editForm.notes || null })
@@ -57,7 +67,7 @@ const saveEdit = async () => {
 
 const deleteAssignment = async () => {
   const categoryId = String(deleteTarget.value?.ticketCategoryId ?? '')
-  if (!categoryId) return
+  if (state.pending.value || !categoryId) return
   await state.run(
     async () => {
       await vendorCategoriesApi.delete(scope.value, categoryId)
@@ -88,6 +98,13 @@ onMounted(() => {
     <section v-else class="relations-grid">
       <form class="relations-panel" @submit.prevent="assign">
         <h2>Assign category</h2>
+        <div v-if="state.error.value" class="relations-alert danger">
+          {{ apiMessage(state.error.value) }}
+          <details v-if="traceId(state.error.value)">
+            <summary>Technical details</summary>
+            <span>Trace ID: {{ traceId(state.error.value) }}</span>
+          </details>
+        </div>
         <label>
           Category
           <select v-model="form.ticketCategoryId" required>
@@ -97,17 +114,23 @@ onMounted(() => {
               :key="optionId(category, ['ticketCategoryId', 'id', 'value'])"
               :value="optionId(category, ['ticketCategoryId', 'id', 'value'])"
             >
-              {{ optionLabel(category, ['ticketCategoryLabel', 'label', 'name', 'text']) }}
+              {{ optionLabel(category, ['label', 'name', 'text', 'categoryLabel']) }}
             </option>
           </select>
+          <small>{{ fieldError(state.error.value, 'ticketCategoryId') }}</small>
         </label>
-        <label>Notes <textarea v-model="form.notes" rows="3" /></label>
-        <button :disabled="state.pending.value" type="submit">Assign category</button>
+        <label>
+          Notes
+          <textarea v-model="form.notes" rows="3" />
+          <small>{{ fieldError(state.error.value, 'notes') }}</small>
+        </label>
+        <button :disabled="state.pending.value" type="submit">
+          {{ state.pending.value ? 'Assigning...' : 'Assign category' }}
+        </button>
       </form>
 
       <section class="relations-panel">
         <div v-if="state.success.value" class="relations-alert success">{{ state.success.value }}</div>
-        <div v-if="state.error.value" class="relations-alert danger">{{ apiMessage(state.error.value) }}</div>
         <h2>Assigned categories</h2>
         <p v-if="categories.length === 0" class="muted">No categories are assigned yet.</p>
         <table v-else>
@@ -120,11 +143,16 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-for="category in categories" :key="category.ticketCategoryId">
-              <td>{{ category.ticketCategoryLabel || category.categoryName }}</td>
-              <td>{{ category.notes }}</td>
+              <td>
+                <strong>{{ category.categoryLabel || category.ticketCategoryLabel || 'Category' }}</strong>
+                <span>{{ category.categoryCode }}</span>
+              </td>
+              <td>{{ category.notes || '-' }}</td>
               <td class="actions">
-                <button type="button" @click="startEdit(category)">Edit</button>
-                <button type="button" class="danger" @click="deleteTarget = category">Delete</button>
+                <button :disabled="state.pending.value" type="button" @click="startEdit(category)">Edit</button>
+                <button :disabled="state.pending.value" type="button" class="danger" @click="deleteTarget = category">
+                  Delete
+                </button>
               </td>
             </tr>
           </tbody>
@@ -135,9 +163,16 @@ onMounted(() => {
     <dialog :open="Boolean(editing)" class="relations-dialog">
       <form method="dialog" @submit.prevent="saveEdit">
         <h2>Edit category assignment</h2>
-        <label>Notes <textarea v-model="editForm.notes" rows="3" /></label>
+        <div v-if="state.error.value" class="relations-alert danger">{{ apiMessage(state.error.value) }}</div>
+        <label>
+          Notes
+          <textarea v-model="editForm.notes" rows="3" />
+          <small>{{ fieldError(state.error.value, 'notes') }}</small>
+        </label>
         <div class="actions">
-          <button :disabled="state.pending.value" type="submit">Save</button>
+          <button :disabled="state.pending.value" type="submit">
+            {{ state.pending.value ? 'Saving...' : 'Save' }}
+          </button>
           <button type="button" @click="editing = null">Cancel</button>
         </div>
       </form>
@@ -148,7 +183,9 @@ onMounted(() => {
         <h2>Delete category assignment</h2>
         <p>This removes the vendor from this ticket category.</p>
         <div class="actions">
-          <button :disabled="state.pending.value" class="danger" type="submit">Delete</button>
+          <button :disabled="state.pending.value" class="danger" type="submit">
+            {{ state.pending.value ? 'Deleting...' : 'Delete' }}
+          </button>
           <button type="button" @click="deleteTarget = null">Cancel</button>
         </div>
       </form>

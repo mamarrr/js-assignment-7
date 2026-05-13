@@ -2,7 +2,7 @@
 import { computed, onMounted, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { vendorsApi } from '@/api/portal/vendors'
-import { apiMessage, useAsyncState, useRouteParam } from './relationViewUtils'
+import { apiMessage, fieldError, traceId, useAsyncState, useRouteParam } from './relationViewUtils'
 
 const router = useRouter()
 const companySlug = useRouteParam('companySlug')
@@ -24,19 +24,20 @@ const load = async () => {
 }
 
 const submit = async () => {
+  if (state.pending.value) return
   await state.run(
     async () => {
       const body = {
-        name: form.name,
+        name: form.name || null,
         registryCode: form.registryCode || null,
         notes: form.notes || null,
       }
       const saved = isEdit.value
         ? await vendorsApi.update(companySlug.value, vendorId.value, body)
         : await vendorsApi.create(companySlug.value, body)
-      await router.push(`/companies/${companySlug.value}/vendors/${saved.vendorId ?? vendorId.value}`)
+      await router.push(`/companies/${companySlug.value}/vendors/${saved.id ?? saved.vendorId ?? vendorId.value}`)
     },
-    { pending: true },
+    { pending: true, success: isEdit.value ? 'Vendor updated.' : 'Vendor created.' },
   )
 }
 
@@ -56,11 +57,32 @@ onMounted(() => {
     </header>
 
     <form class="relations-panel" @submit.prevent="submit">
-      <div v-if="state.error.value" class="relations-alert danger">{{ apiMessage(state.error.value) }}</div>
-      <label>Name <input v-model="form.name" required /></label>
-      <label>Registry code <input v-model="form.registryCode" /></label>
-      <label>Notes <textarea v-model="form.notes" rows="4" /></label>
-      <button :disabled="state.pending.value" type="submit">{{ isEdit ? 'Save' : 'Create vendor' }}</button>
+      <p v-if="state.loading.value">Loading vendor...</p>
+      <div v-if="state.error.value" class="relations-alert danger">
+        {{ apiMessage(state.error.value) }}
+        <details v-if="traceId(state.error.value)">
+          <summary>Technical details</summary>
+          <span>Trace ID: {{ traceId(state.error.value) }}</span>
+        </details>
+      </div>
+      <label>
+        Name
+        <input v-model="form.name" :aria-invalid="Boolean(fieldError(state.error.value, 'name'))" required />
+        <small>{{ fieldError(state.error.value, 'name') }}</small>
+      </label>
+      <label>
+        Registry code
+        <input v-model="form.registryCode" :aria-invalid="Boolean(fieldError(state.error.value, 'registryCode'))" />
+        <small>{{ fieldError(state.error.value, 'registryCode') }}</small>
+      </label>
+      <label>
+        Notes
+        <textarea v-model="form.notes" :aria-invalid="Boolean(fieldError(state.error.value, 'notes'))" rows="4" />
+        <small>{{ fieldError(state.error.value, 'notes') }}</small>
+      </label>
+      <button :disabled="state.pending.value || state.loading.value" type="submit">
+        {{ state.pending.value ? 'Saving...' : isEdit ? 'Save' : 'Create vendor' }}
+      </button>
     </form>
   </main>
 </template>

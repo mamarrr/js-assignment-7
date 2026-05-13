@@ -36,6 +36,35 @@
   margin-bottom: 1rem;
 }
 
+.relations-empty {
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+  padding: 1rem;
+  background: #f8fafc;
+}
+
+.relations-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.relations-stats div {
+  border: 1px solid #d8dee8;
+  border-radius: 6px;
+  padding: 0.75rem;
+}
+
+.relations-stats strong {
+  display: block;
+  font-size: 1.4rem;
+}
+
+.relations-stats span {
+  color: #536273;
+}
+
 label {
   display: grid;
   gap: 0.35rem;
@@ -63,6 +92,11 @@ a {
 button[type='submit'] {
   background: #1f5f8b;
   color: #fff;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
 }
 
 .danger {
@@ -139,4 +173,8 @@ mark.inactive {
   border-radius: 8px;
   max-width: 520px;
   padding: 1rem;
+}
+
+small {
+  color: #b3261e;
 }

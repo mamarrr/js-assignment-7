@@ -1,11 +1,17 @@
 import { portalApi } from './generic'
 import type {
-  ApiRecord,
+  AssignVendorCategoryDto,
+  UpdateVendorCategoryDto,
   VendorCategoryAssignmentDto,
   VendorCategoryAssignmentListDto,
 } from '@/types/api'
 
-export type { VendorCategoryAssignmentDto, VendorCategoryAssignmentListDto }
+export type {
+  AssignVendorCategoryDto,
+  UpdateVendorCategoryDto,
+  VendorCategoryAssignmentDto,
+  VendorCategoryAssignmentListDto,
+}
 
 export interface VendorCategoryScope extends Record<string, string> {
   companySlug: string
@@ -18,9 +24,9 @@ const vendorCategoryBase = `${vendorCategoriesBase}/{ticketCategoryId}`
 export const vendorCategoriesApi = {
   list: (scope: VendorCategoryScope) =>
     portalApi.get<VendorCategoryAssignmentListDto>(vendorCategoriesBase, scope),
-  assign: (scope: VendorCategoryScope, body: ApiRecord) =>
+  assign: (scope: VendorCategoryScope, body: AssignVendorCategoryDto) =>
     portalApi.post<VendorCategoryAssignmentListDto>(vendorCategoriesBase, scope, body),
-  update: (scope: VendorCategoryScope, ticketCategoryId: string, body: ApiRecord) =>
+  update: (scope: VendorCategoryScope, ticketCategoryId: string, body: UpdateVendorCategoryDto) =>
     portalApi.put<VendorCategoryAssignmentListDto>(
       vendorCategoryBase,
       { ...scope, ticketCategoryId },

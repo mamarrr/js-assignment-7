@@ -10,8 +10,11 @@ import {
   asArray,
   createContactAssignmentForm,
   createNewContactForm,
+  fieldError,
   optionId,
   optionLabel,
+  today,
+  traceId,
   useAsyncState,
   useRouteParam,
 } from './relationViewUtils'
@@ -22,6 +25,9 @@ const state = useAsyncState()
 const page = ref<VendorContactListDto | null>(null)
 const editing = ref<VendorContactItemDto | null>(null)
 const deleteTarget = ref<VendorContactItemDto | null>(null)
+const actionTarget = ref<{ contact: VendorContactItemDto; action: 'set-primary' | 'confirm' | 'unconfirm' } | null>(
+  null,
+)
 const attachForm = createContactAssignmentForm()
 const createForm = createNewContactForm()
 const editForm = createContactAssignmentForm()
@@ -35,7 +41,30 @@ const load = async () => {
   page.value = await state.run(() => vendorContactsApi.list(scope.value))
 }
 
+const resetAssignmentForm = () => {
+  attachForm.contactId = ''
+  attachForm.validFrom = today()
+  attachForm.validTo = ''
+  attachForm.confirmed = true
+  attachForm.isPrimary = false
+  attachForm.fullName = ''
+  attachForm.roleTitle = ''
+}
+
+const resetCreateForm = () => {
+  createForm.contactTypeId = ''
+  createForm.contactValue = ''
+  createForm.contactNotes = ''
+  createForm.validFrom = today()
+  createForm.validTo = ''
+  createForm.confirmed = true
+  createForm.isPrimary = false
+  createForm.fullName = ''
+  createForm.roleTitle = ''
+}
+
 const attachExisting = async () => {
+  if (state.pending.value) return
   await state.run(
     async () => {
       page.value = await vendorContactsApi.attachExisting(scope.value, {
@@ -47,13 +76,14 @@ const attachExisting = async () => {
         fullName: attachForm.fullName || null,
         roleTitle: attachForm.roleTitle || null,
       })
-      attachForm.contactId = ''
+      resetAssignmentForm()
     },
     { pending: true, success: 'Contact attached.' },
   )
 }
 
 const createAndAttach = async () => {
+  if (state.pending.value) return
   await state.run(
     async () => {
       page.value = await vendorContactsApi.createAndAttach(scope.value, {
@@ -67,11 +97,7 @@ const createAndAttach = async () => {
         fullName: createForm.fullName || null,
         roleTitle: createForm.roleTitle || null,
       })
-      createForm.contactTypeId = ''
-      createForm.contactValue = ''
-      createForm.contactNotes = ''
-      createForm.fullName = ''
-      createForm.roleTitle = ''
+      resetCreateForm()
     },
     { pending: true, success: 'Contact created and attached.' },
   )
@@ -89,7 +115,7 @@ const startEdit = (contact: VendorContactItemDto) => {
 }
 
 const saveEdit = async () => {
-  if (!editing.value?.vendorContactId) return
+  if (state.pending.value || !editing.value?.vendorContactId) return
   await state.run(
     async () => {
       page.value = await vendorContactsApi.updateAssignment(scope.value, editing.value!.vendorContactId!, {
@@ -111,13 +137,34 @@ const perform = async (action: () => Promise<VendorContactListDto>, message: str
   await state.run(
     async () => {
       page.value = await action()
+      actionTarget.value = null
     },
     { pending: true, success: message },
   )
 }
 
+const performConfirmedAction = async () => {
+  const target = actionTarget.value
+  if (state.pending.value || !target?.contact.vendorContactId) return
+  if (target.action === 'set-primary') {
+    await perform(
+      () => vendorContactsApi.setPrimary(scope.value, target.contact.vendorContactId!),
+      'Primary contact updated.',
+    )
+    return
+  }
+  if (target.action === 'confirm') {
+    await perform(() => vendorContactsApi.confirm(scope.value, target.contact.vendorContactId!), 'Contact confirmed.')
+    return
+  }
+  await perform(
+    () => vendorContactsApi.unconfirm(scope.value, target.contact.vendorContactId!),
+    'Contact unconfirmed.',
+  )
+}
+
 const deleteAssignment = async () => {
-  if (!deleteTarget.value?.vendorContactId) return
+  if (state.pending.value || !deleteTarget.value?.vendorContactId) return
   await state.run(
     async () => {
       page.value = await vendorContactsApi.deleteAssignment(scope.value, deleteTarget.value!.vendorContactId!)
@@ -146,7 +193,13 @@ onMounted(() => {
     <section v-if="state.loading.value" class="relations-panel">Loading contacts...</section>
     <section v-else>
       <div v-if="state.success.value" class="relations-alert success">{{ state.success.value }}</div>
-      <div v-if="state.error.value" class="relations-alert danger">{{ apiMessage(state.error.value) }}</div>
+      <div v-if="state.error.value" class="relations-alert danger">
+        {{ apiMessage(state.error.value) }}
+        <details v-if="traceId(state.error.value)">
+          <summary>Technical details</summary>
+          <span>Trace ID: {{ traceId(state.error.value) }}</span>
+        </details>
+      </div>
 
       <div class="relations-grid">
         <form class="relations-panel" @submit.prevent="attachExisting">
@@ -163,16 +216,35 @@ onMounted(() => {
                 {{ optionLabel(option, ['contactValue', 'label', 'name']) }}
               </option>
             </select>
+            <small>{{ fieldError(state.error.value, 'contactId') }}</small>
           </label>
-          <label>Full name <input v-model="attachForm.fullName" /></label>
-          <label>Role <input v-model="attachForm.roleTitle" /></label>
+          <label>
+            Full name
+            <input v-model="attachForm.fullName" />
+            <small>{{ fieldError(state.error.value, 'fullName') }}</small>
+          </label>
+          <label>
+            Role
+            <input v-model="attachForm.roleTitle" />
+            <small>{{ fieldError(state.error.value, 'roleTitle') }}</small>
+          </label>
           <div class="relations-inline">
-            <label>Valid from <input v-model="attachForm.validFrom" type="date" required /></label>
-            <label>Valid to <input v-model="attachForm.validTo" type="date" /></label>
+            <label>
+              Valid from
+              <input v-model="attachForm.validFrom" type="date" required />
+              <small>{{ fieldError(state.error.value, 'validFrom') }}</small>
+            </label>
+            <label>
+              Valid to
+              <input v-model="attachForm.validTo" type="date" />
+              <small>{{ fieldError(state.error.value, 'validTo') }}</small>
+            </label>
           </div>
           <label class="relations-check"><input v-model="attachForm.confirmed" type="checkbox" /> Confirmed</label>
           <label class="relations-check"><input v-model="attachForm.isPrimary" type="checkbox" /> Primary</label>
-          <button :disabled="state.pending.value" type="submit">Attach contact</button>
+          <button :disabled="state.pending.value" type="submit">
+            {{ state.pending.value ? 'Attaching...' : 'Attach contact' }}
+          </button>
         </form>
 
         <form class="relations-panel" @submit.prevent="createAndAttach">
@@ -189,18 +261,45 @@ onMounted(() => {
                 {{ optionLabel(option, ['label', 'name', 'text']) }}
               </option>
             </select>
+            <small>{{ fieldError(state.error.value, 'contactTypeId') }}</small>
           </label>
-          <label>Contact value <input v-model="createForm.contactValue" required /></label>
-          <label>Notes <textarea v-model="createForm.contactNotes" rows="3" /></label>
-          <label>Full name <input v-model="createForm.fullName" /></label>
-          <label>Role <input v-model="createForm.roleTitle" /></label>
+          <label>
+            Contact value
+            <input v-model="createForm.contactValue" required />
+            <small>{{ fieldError(state.error.value, 'contactValue') }}</small>
+          </label>
+          <label>
+            Notes
+            <textarea v-model="createForm.contactNotes" rows="3" />
+            <small>{{ fieldError(state.error.value, 'contactNotes') }}</small>
+          </label>
+          <label>
+            Full name
+            <input v-model="createForm.fullName" />
+            <small>{{ fieldError(state.error.value, 'fullName') }}</small>
+          </label>
+          <label>
+            Role
+            <input v-model="createForm.roleTitle" />
+            <small>{{ fieldError(state.error.value, 'roleTitle') }}</small>
+          </label>
           <div class="relations-inline">
-            <label>Valid from <input v-model="createForm.validFrom" type="date" required /></label>
-            <label>Valid to <input v-model="createForm.validTo" type="date" /></label>
+            <label>
+              Valid from
+              <input v-model="createForm.validFrom" type="date" required />
+              <small>{{ fieldError(state.error.value, 'validFrom') }}</small>
+            </label>
+            <label>
+              Valid to
+              <input v-model="createForm.validTo" type="date" />
+              <small>{{ fieldError(state.error.value, 'validTo') }}</small>
+            </label>
           </div>
           <label class="relations-check"><input v-model="createForm.confirmed" type="checkbox" /> Confirmed</label>
           <label class="relations-check"><input v-model="createForm.isPrimary" type="checkbox" /> Primary</label>
-          <button :disabled="state.pending.value" type="submit">Create and attach contact</button>
+          <button :disabled="state.pending.value" type="submit">
+            {{ state.pending.value ? 'Creating...' : 'Create and attach contact' }}
+          </button>
         </form>
       </div>
 
@@ -236,22 +335,16 @@ onMounted(() => {
                 <button
                   v-if="!contact.isPrimary && contact.vendorContactId"
                   type="button"
-                  @click="perform(() => vendorContactsApi.setPrimary(scope, contact.vendorContactId!), 'Primary contact updated.')"
+                  :disabled="state.pending.value"
+                  @click="actionTarget = { contact, action: 'set-primary' }"
                 >
                   Set primary
                 </button>
                 <button
                   v-if="contact.vendorContactId"
                   type="button"
-                  @click="
-                    perform(
-                      () =>
-                        contact.confirmed
-                          ? vendorContactsApi.unconfirm(scope, contact.vendorContactId!)
-                          : vendorContactsApi.confirm(scope, contact.vendorContactId!),
-                      contact.confirmed ? 'Contact unconfirmed.' : 'Contact confirmed.',
-                    )
-                  "
+                  :disabled="state.pending.value"
+                  @click="actionTarget = { contact, action: contact.confirmed ? 'unconfirm' : 'confirm' }"
                 >
                   {{ contact.confirmed ? 'Unconfirm' : 'Confirm' }}
                 </button>
@@ -266,17 +359,61 @@ onMounted(() => {
     <dialog :open="Boolean(editing)" class="relations-dialog">
       <form method="dialog" @submit.prevent="saveEdit">
         <h2>Edit contact assignment</h2>
-        <label>Full name <input v-model="editForm.fullName" /></label>
-        <label>Role <input v-model="editForm.roleTitle" /></label>
+        <div v-if="state.error.value" class="relations-alert danger">{{ apiMessage(state.error.value) }}</div>
+        <label>
+          Full name
+          <input v-model="editForm.fullName" />
+          <small>{{ fieldError(state.error.value, 'fullName') }}</small>
+        </label>
+        <label>
+          Role
+          <input v-model="editForm.roleTitle" />
+          <small>{{ fieldError(state.error.value, 'roleTitle') }}</small>
+        </label>
         <div class="relations-inline">
-          <label>Valid from <input v-model="editForm.validFrom" type="date" required /></label>
-          <label>Valid to <input v-model="editForm.validTo" type="date" /></label>
+          <label>
+            Valid from
+            <input v-model="editForm.validFrom" type="date" required />
+            <small>{{ fieldError(state.error.value, 'validFrom') }}</small>
+          </label>
+          <label>
+            Valid to
+            <input v-model="editForm.validTo" type="date" />
+            <small>{{ fieldError(state.error.value, 'validTo') }}</small>
+          </label>
         </div>
         <label class="relations-check"><input v-model="editForm.confirmed" type="checkbox" /> Confirmed</label>
         <label class="relations-check"><input v-model="editForm.isPrimary" type="checkbox" /> Primary</label>
         <div class="actions">
-          <button :disabled="state.pending.value" type="submit">Save</button>
+          <button :disabled="state.pending.value" type="submit">
+            {{ state.pending.value ? 'Saving...' : 'Save' }}
+          </button>
           <button type="button" @click="editing = null">Cancel</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog :open="Boolean(actionTarget)" class="relations-dialog">
+      <form method="dialog" @submit.prevent="performConfirmedAction">
+        <h2>
+          {{
+            actionTarget?.action === 'set-primary'
+              ? 'Set primary contact'
+              : actionTarget?.action === 'confirm'
+                ? 'Confirm contact'
+                : 'Unconfirm contact'
+          }}
+        </h2>
+        <p v-if="actionTarget?.action === 'set-primary'">
+          This contact becomes the vendor's primary contact for future communication.
+        </p>
+        <p v-else-if="actionTarget?.action === 'confirm'">This marks the vendor contact assignment as active.</p>
+        <p v-else>This marks the vendor contact assignment as inactive.</p>
+        <div class="actions">
+          <button :disabled="state.pending.value" type="submit">
+            {{ state.pending.value ? 'Saving...' : 'Confirm' }}
+          </button>
+          <button type="button" @click="actionTarget = null">Cancel</button>
         </div>
       </form>
     </dialog>
@@ -286,7 +423,9 @@ onMounted(() => {
         <h2>Delete contact assignment</h2>
         <p>This removes the contact from this vendor. The contact record itself is not deleted.</p>
         <div class="actions">
-          <button :disabled="state.pending.value" class="danger" type="submit">Delete</button>
+          <button :disabled="state.pending.value" class="danger" type="submit">
+            {{ state.pending.value ? 'Deleting...' : 'Delete' }}
+          </button>
           <button type="button" @click="deleteTarget = null">Cancel</button>
         </div>
       </form>

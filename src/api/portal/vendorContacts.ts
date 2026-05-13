@@ -1,12 +1,17 @@
 import { portalApi } from './generic'
 import type {
-  ApiRecord,
-  NewContactAssignmentDto,
+  CreateAndAttachVendorContactDto,
+  VendorContactAssignmentDto,
   VendorContactItemDto,
   VendorContactListDto,
 } from '@/types/api'
 
-export type { VendorContactItemDto, VendorContactListDto }
+export type {
+  CreateAndAttachVendorContactDto,
+  VendorContactAssignmentDto,
+  VendorContactItemDto,
+  VendorContactListDto,
+}
 
 export interface VendorContactScope extends Record<string, string> {
   companySlug: string
@@ -19,11 +24,11 @@ const vendorContactItemBase = `${vendorContactsBase}/{vendorContactId}`
 export const vendorContactsApi = {
   list: (scope: VendorContactScope) =>
     portalApi.get<VendorContactListDto>(vendorContactsBase, scope),
-  attachExisting: (scope: VendorContactScope, body: ApiRecord) =>
+  attachExisting: (scope: VendorContactScope, body: VendorContactAssignmentDto) =>
     portalApi.post<VendorContactListDto>(`${vendorContactsBase}/attach`, scope, body),
-  createAndAttach: (scope: VendorContactScope, body: NewContactAssignmentDto) =>
+  createAndAttach: (scope: VendorContactScope, body: CreateAndAttachVendorContactDto) =>
     portalApi.post<VendorContactListDto>(`${vendorContactsBase}/create`, scope, body),
-  updateAssignment: (scope: VendorContactScope, vendorContactId: string, body: ApiRecord) =>
+  updateAssignment: (scope: VendorContactScope, vendorContactId: string, body: VendorContactAssignmentDto) =>
     portalApi.put<VendorContactListDto>(vendorContactItemBase, { ...scope, vendorContactId }, body),
   deleteAssignment: (scope: VendorContactScope, vendorContactId: string) =>
     portalApi.delete<VendorContactListDto>(vendorContactItemBase, { ...scope, vendorContactId }),

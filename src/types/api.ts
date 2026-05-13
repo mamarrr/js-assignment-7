@@ -528,16 +528,35 @@ export interface ResidentContactListDto extends ApiRecord {
   contactTypeOptions?: ApiRecord[]
 }
 
-export interface VendorContactItemDto extends ContactAssignmentDto {
+export interface VendorContactAssignmentDto extends ContactAssignmentDto {
+  fullName?: string | null
+  roleTitle?: string | null
+}
+
+export interface CreateAndAttachVendorContactDto extends VendorContactAssignmentDto {
+  contactTypeId?: string
+  contactValue?: string | null
+  contactNotes?: string | null
+}
+
+export interface VendorContactItemDto extends VendorContactAssignmentDto {
   vendorContactId?: string
+  vendorId?: string
+  contactTypeId?: string
+  contactTypeCode?: string
   contactValue?: string
   contactTypeLabel?: string
-  fullName?: string
-  roleTitle?: string
+  contactNotes?: string
+  createdAt?: string
+  path?: string
 }
 
 export interface VendorContactListDto extends ApiRecord {
+  companySlug?: string
+  companyName?: string
+  vendorId?: string
   vendorName?: string
+  path?: string
   contacts?: VendorContactItemDto[]
   existingContactOptions?: ApiRecord[]
   contactTypeOptions?: ApiRecord[]
@@ -545,27 +564,62 @@ export interface VendorContactListDto extends ApiRecord {
 
 export interface VendorListItemDto extends ApiRecord {
   vendorId?: string
+  managementCompanyId?: string
+  companySlug?: string
+  companyName?: string
   name?: string
   registryCode?: string
-  notes?: string
+  createdAt?: string
+  activeCategoryCount?: number
+  assignedTicketCount?: number
+  contactCount?: number
+  path?: string
 }
 
-export interface VendorProfileDto extends VendorListItemDto {}
+export interface VendorProfileDto extends Omit<VendorListItemDto, 'vendorId'> {
+  id?: string
+  vendorId?: string
+  notes?: string
+  scheduledWorkCount?: number
+}
+
+export interface VendorRequestDto extends ApiRecord {
+  name?: string | null
+  registryCode?: string | null
+  notes?: string | null
+}
 
 export interface VendorDeleteConfirmationDto extends ApiRecord {
   confirmationRegistryCode?: string
 }
 
-export interface VendorCategoryAssignmentDto extends ApiRecord {
+export interface AssignVendorCategoryDto extends ApiRecord {
   ticketCategoryId?: string
+  notes?: string | null
+}
+
+export interface UpdateVendorCategoryDto extends ApiRecord {
+  notes?: string | null
+}
+
+export interface VendorCategoryAssignmentDto extends ApiRecord {
+  assignmentId?: string
+  vendorId?: string
+  ticketCategoryId?: string
+  categoryCode?: string
+  categoryLabel?: string
   ticketCategoryLabel?: string
-  categoryName?: string
   notes?: string
+  createdAt?: string
+  path?: string
 }
 
 export interface VendorCategoryAssignmentListDto extends ApiRecord {
+  companySlug?: string
+  companyName?: string
+  vendorId?: string
   vendorName?: string
-  categories?: VendorCategoryAssignmentDto[]
-  assignedCategories?: VendorCategoryAssignmentDto[]
+  path?: string
+  assignments?: VendorCategoryAssignmentDto[]
   availableCategories?: ApiRecord[]
 }
