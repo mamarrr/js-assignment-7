@@ -20,6 +20,8 @@ export const useAsyncState = () => {
 
   const run = async <T>(action: () => Promise<T>, options?: { pending?: boolean; success?: string }) => {
     const pendingRef = options?.pending ? pending : loading
+    if (pendingRef.value) return undefined as T
+
     pendingRef.value = true
     error.value = null
     success.value = ''
@@ -32,7 +34,7 @@ export const useAsyncState = () => {
       return result
     } catch (caught) {
       error.value = caught as ApiError | Error
-      throw caught
+      return undefined as T
     } finally {
       pendingRef.value = false
     }

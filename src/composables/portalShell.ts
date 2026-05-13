@@ -55,7 +55,8 @@ export const usePortalShell = () => {
       { label: 'Users', to: `${base}/users`, requires: 'canManageCompanyUsers' },
     ]
 
-    return items.filter((item) => !item.requires || Boolean(workspaceStore.permissions[item.requires]))
+    const permissions = workspaceStore.permissionsForCompany(companySlug.value)
+    return items.filter((item) => !item.requires || Boolean(permissions[item.requires]))
   })
 
   const breadcrumbs = computed<BreadcrumbItem[]>(() => {

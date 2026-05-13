@@ -56,15 +56,31 @@ const firstString = (...values: unknown[]) => values.find((value): value is stri
 
 const normalizeAppPath = (path?: string) => {
   if (!path) return undefined
-  if (path.startsWith('http://') || path.startsWith('https://')) {
+  const normalizedPath = path.trim()
+
+  if (normalizedPath.startsWith('http://') || normalizedPath.startsWith('https://')) {
     try {
-      const url = new URL(path)
-      return `${url.pathname}${url.search}${url.hash}`
+      const url = new URL(normalizedPath)
+      return normalizeAppPath(`${url.pathname}${url.search}${url.hash}`)
     } catch {
       return undefined
     }
   }
-  return path.startsWith('/') ? path : `/${path}`
+
+  const appPath = normalizedPath.startsWith('/') ? normalizedPath : `/${normalizedPath}`
+  const lowerPath = appPath.toLowerCase()
+
+  if (lowerPath.includes('/admin') || lowerPath.includes('/systemadmin')) return undefined
+  if (
+    lowerPath === '/workspaces' ||
+    lowerPath.startsWith('/auth/') ||
+    lowerPath.startsWith('/onboarding') ||
+    lowerPath.startsWith('/companies/')
+  ) {
+    return appPath
+  }
+
+  return undefined
 }
 
 const clearTenantScopedStores = () => {
@@ -92,6 +108,9 @@ export const workspaceOptionPath = (option?: WorkspaceOptionDto) => {
 
   return undefined
 }
+
+export const workspaceCompanySlug = (option?: WorkspaceOptionDto) =>
+  firstString(option?.managementCompanySlug, option?.companySlug)
 
 export const workspaceRedirectPath = (redirect?: WorkspaceRedirectDto) => {
   const explicitPath = normalizeAppPath(redirect?.path ?? redirect?.destination ?? redirect?.redirectUrl)
@@ -143,6 +162,13 @@ export const useWorkspaceStore = defineStore('workspace', {
     permissions: (state): WorkspaceOptionPermissionsDto => state.selectedWorkspace?.permissions ?? {},
     selectedCompanySlug: (state) =>
       firstString(state.selectedWorkspace?.managementCompanySlug, state.selectedWorkspace?.companySlug),
+    workspaceForCompany(): (companySlug?: string) => WorkspaceOptionDto | undefined {
+      return (companySlug?: string) =>
+        this.workspaceOptions.find((option) => workspaceCompanySlug(option) === companySlug)
+    },
+    permissionsForCompany(): (companySlug?: string) => WorkspaceOptionPermissionsDto {
+      return (companySlug?: string) => this.workspaceForCompany(companySlug)?.permissions ?? this.permissions
+    },
     defaultPath(): string | undefined {
       return (
         normalizeAppPath(this.onboardingStatus?.defaultPath) ??

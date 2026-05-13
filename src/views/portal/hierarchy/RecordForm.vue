@@ -23,10 +23,14 @@ const emit = defineEmits<{
 const update = (modelValue: ApiRecord, key: string, value: string) => {
   emit('update:modelValue', { ...modelValue, [key]: value })
 }
+
+const submit = (pending?: boolean) => {
+  if (!pending) emit('submit')
+}
 </script>
 
 <template>
-  <form class="hierarchy-card hierarchy-form" @submit.prevent="emit('submit')">
+  <form class="hierarchy-card hierarchy-form" @submit.prevent="submit(pending)">
     <div>
       <h2>{{ title }}</h2>
       <p v-if="description" class="hierarchy-muted">{{ description }}</p>

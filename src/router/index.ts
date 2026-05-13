@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useWorkspaceStore } from '@/stores/workspace'
 
+const routeParam = (value: unknown) => (Array.isArray(value) ? String(value[0] ?? '') : String(value ?? ''))
+
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -332,7 +334,10 @@ router.beforeEach(async (to) => {
     return { name: 'workspaces' }
   }
 
-  if (to.meta.permission === 'canManageCompanyUsers' && !workspaceStore.permissions.canManageCompanyUsers) {
+  if (
+    to.meta.permission === 'canManageCompanyUsers' &&
+    !workspaceStore.permissionsForCompany(routeParam(to.params.companySlug)).canManageCompanyUsers
+  ) {
     return { name: 'forbidden' }
   }
 

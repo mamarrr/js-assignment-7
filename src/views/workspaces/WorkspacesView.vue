@@ -19,11 +19,22 @@ const loaded = ref(false)
 const selectError = ref<ApiError | null>(null)
 const selectedId = ref<string | null>(null)
 
-const groups = computed(() => [
-  { title: 'Management companies', items: workspaceStore.managementCompanies },
-  { title: 'Customers', items: workspaceStore.customers },
-  { title: 'Residents', items: workspaceStore.residents },
-].filter((group) => group.items.length > 0))
+const workspaceKey = (option: WorkspaceOptionDto) =>
+  option.id ?? option.workspaceId ?? option.contextId ?? option.path ?? option.name ?? ''
+
+const groups = computed(() => {
+  const groupedKeys = new Set(
+    [...workspaceStore.managementCompanies, ...workspaceStore.customers, ...workspaceStore.residents].map(workspaceKey),
+  )
+  const otherOptions = workspaceStore.workspaceOptions.filter((option) => !groupedKeys.has(workspaceKey(option)))
+
+  return [
+    { title: 'Management companies', items: workspaceStore.managementCompanies },
+    { title: 'Customers', items: workspaceStore.customers },
+    { title: 'Residents', items: workspaceStore.residents },
+    { title: 'Other workspaces', items: otherOptions },
+  ].filter((group) => group.items.length > 0)
+})
 
 const optionTitle = (option: WorkspaceOptionDto) => option.name ?? option.displayName ?? option.slug ?? 'Workspace'
 
@@ -36,7 +47,7 @@ const optionMeta = (option: WorkspaceOptionDto) =>
 
 const enterWorkspace = async (option: WorkspaceOptionDto) => {
   selectError.value = null
-  selectedId.value = option.id ?? null
+  selectedId.value = workspaceKey(option)
 
   try {
     const redirect = await workspaceStore.selectWorkspace(option)
@@ -98,21 +109,32 @@ onMounted(async () => {
                 <button
                   class="button"
                   type="button"
-                  :disabled="selectedId === option.id"
+                  :disabled="selectedId === workspaceKey(option)"
                   @click="enterWorkspace(option)"
                 >
-                  {{ selectedId === option.id ? 'Entering...' : 'Enter workspace' }}
+                  {{ selectedId === workspaceKey(option) ? 'Entering...' : 'Enter workspace' }}
                 </button>
               </article>
             </div>
           </section>
         </div>
 
-        <div class="workspace-actions">
-          <RouterLink class="button button--secondary" to="/onboarding/new-management-company">
+        <div
+          v-if="workspaceStore.canCreateManagementCompany || workspaceStore.canJoinManagementCompany"
+          class="workspace-actions"
+        >
+          <RouterLink
+            v-if="workspaceStore.canCreateManagementCompany"
+            class="button button--secondary"
+            to="/onboarding/new-management-company"
+          >
             Create management company
           </RouterLink>
-          <RouterLink class="button button--secondary" to="/onboarding/join-management-company">
+          <RouterLink
+            v-if="workspaceStore.canJoinManagementCompany"
+            class="button button--secondary"
+            to="/onboarding/join-management-company"
+          >
             Request company access
           </RouterLink>
         </div>
