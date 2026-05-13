@@ -1,12 +1,18 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { residentLeasesApi, type LeaseDto, type LeaseRoleOptionDto } from '@/api/portal/leases'
+import { lookupsApi } from '@/api/portal/lookups'
+import type { LeasePropertySearchItemDto, LeaseUnitOptionDto } from '@/types/api'
 import {
   apiMessage,
   asArray,
   createLeaseForm,
+  fieldError,
   optionId,
   optionLabel,
+  roleOptions,
+  today,
+  traceId,
   useAsyncState,
   useRouteParam,
 } from './relationViewUtils'
@@ -16,8 +22,8 @@ const residentIdCode = useRouteParam('residentIdCode')
 const state = useAsyncState()
 const leases = ref<LeaseDto[]>([])
 const roles = ref<LeaseRoleOptionDto[]>([])
-const propertyResults = ref<LeaseDto[]>([])
-const unitOptions = ref<LeaseDto[]>([])
+const propertyResults = ref<LeasePropertySearchItemDto[]>([])
+const unitOptions = ref<LeaseUnitOptionDto[]>([])
 const editing = ref<LeaseDto | null>(null)
 const deleteTarget = ref<LeaseDto | null>(null)
 const form = createLeaseForm()
@@ -25,23 +31,36 @@ const search = ref('')
 
 const scope = computed(() => ({ companySlug: companySlug.value, residentIdCode: residentIdCode.value }))
 
+const propertyLabel = (property: LeasePropertySearchItemDto) => {
+  const name = optionLabel(property, ['propertyName', 'name'])
+  return property.addressLine ? `${name} - ${property.addressLine}` : name
+}
+
 const load = async () => {
   await state.run(async () => {
     leases.value = asArray<LeaseDto>(await residentLeasesApi.list(scope.value))
-    const roleResult = await residentLeasesApi.roles(scope.value)
-    roles.value = asArray<LeaseRoleOptionDto>(roleResult.roles ?? roleResult.leaseRoles)
+    try {
+      roles.value = roleOptions(await residentLeasesApi.roles(scope.value))
+    } catch {
+      roles.value = roleOptions(await lookupsApi.leaseRoles())
+    }
   })
 }
 
 const searchProperties = async () => {
-  const result = await residentLeasesApi.searchProperties(scope.value, search.value)
-  propertyResults.value = asArray<LeaseDto>(result.items ?? result.results)
+  await state.run(async () => {
+    const result = await residentLeasesApi.searchProperties(scope.value, search.value)
+    propertyResults.value = asArray<LeasePropertySearchItemDto>(result.properties)
+  }, { pending: true })
 }
 
 const loadUnits = async () => {
   if (!form.propertyId) return
-  const result = await residentLeasesApi.unitsForProperty(scope.value, form.propertyId)
-  unitOptions.value = asArray<LeaseDto>(result.units ?? result.options)
+  await state.run(async () => {
+    const result = await residentLeasesApi.unitsForProperty(scope.value, form.propertyId)
+    unitOptions.value = asArray<LeaseUnitOptionDto>(result.units)
+    form.unitId = ''
+  }, { pending: true })
 }
 
 const resetForm = () => {
@@ -49,6 +68,7 @@ const resetForm = () => {
   form.propertyId = ''
   form.unitId = ''
   form.leaseRoleId = ''
+  form.startDate = today()
   form.endDate = ''
   form.notes = ''
 }
@@ -119,13 +139,20 @@ onMounted(() => {
     <section v-if="state.loading.value" class="relations-panel">Loading leases...</section>
     <section v-else class="relations-grid">
       <form class="relations-panel" @submit.prevent="submit">
+        <div v-if="state.error.value" class="relations-alert danger">
+          {{ apiMessage(state.error.value) }}
+          <details v-if="traceId(state.error.value)">
+            <summary>Technical details</summary>
+            <span>Trace ID: {{ traceId(state.error.value) }}</span>
+          </details>
+        </div>
         <h2>{{ editing ? 'Edit lease' : 'Create lease' }}</h2>
         <template v-if="!editing">
           <label>
             Property search
             <span class="relations-inline">
               <input v-model="search" placeholder="Search properties" />
-              <button type="button" @click="searchProperties">Search</button>
+              <button :disabled="state.pending.value" type="button" @click="searchProperties">Search</button>
             </span>
           </label>
           <label>
@@ -137,9 +164,10 @@ onMounted(() => {
                 :key="optionId(property, ['propertyId', 'id'])"
                 :value="optionId(property, ['propertyId', 'id'])"
               >
-                {{ optionLabel(property, ['propertyName', 'name']) }}
+                {{ propertyLabel(property) }}
               </option>
             </select>
+            <small>{{ fieldError(state.error.value, 'propertyId') }}</small>
           </label>
           <label>
             Unit
@@ -150,9 +178,10 @@ onMounted(() => {
                 :key="optionId(unit, ['unitId', 'id'])"
                 :value="optionId(unit, ['unitId', 'id'])"
               >
-                {{ optionLabel(unit, ['unitName', 'label', 'name']) }}
+                {{ optionLabel(unit, ['unitNr', 'unitSlug', 'unitName', 'label', 'name']) }}
               </option>
             </select>
+            <small>{{ fieldError(state.error.value, 'unitId') }}</small>
           </label>
         </template>
         <label>
@@ -167,12 +196,25 @@ onMounted(() => {
               {{ optionLabel(role, ['label', 'name']) }}
             </option>
           </select>
+          <small>{{ fieldError(state.error.value, 'leaseRoleId') }}</small>
         </label>
         <div class="relations-inline">
-          <label>Start date <input v-model="form.startDate" type="date" required /></label>
-          <label>End date <input v-model="form.endDate" type="date" /></label>
+          <label>
+            Start date
+            <input v-model="form.startDate" type="date" required />
+            <small>{{ fieldError(state.error.value, 'startDate') }}</small>
+          </label>
+          <label>
+            End date
+            <input v-model="form.endDate" type="date" />
+            <small>{{ fieldError(state.error.value, 'endDate') }}</small>
+          </label>
         </div>
-        <label>Notes <textarea v-model="form.notes" rows="3" /></label>
+        <label>
+          Notes
+          <textarea v-model="form.notes" rows="3" />
+          <small>{{ fieldError(state.error.value, 'notes') }}</small>
+        </label>
         <div class="actions">
           <button :disabled="state.pending.value" type="submit">{{ editing ? 'Save' : 'Create lease' }}</button>
           <button v-if="editing" type="button" @click="resetForm">Cancel</button>
@@ -181,7 +223,6 @@ onMounted(() => {
 
       <section class="relations-panel">
         <div v-if="state.success.value" class="relations-alert success">{{ state.success.value }}</div>
-        <div v-if="state.error.value" class="relations-alert danger">{{ apiMessage(state.error.value) }}</div>
         <h2>Current leases</h2>
         <p v-if="leases.length === 0" class="muted">No leases are linked yet.</p>
         <table v-else>
@@ -195,7 +236,7 @@ onMounted(() => {
           </thead>
           <tbody>
             <tr v-for="lease in leases" :key="lease.leaseId">
-              <td>{{ lease.unitName || lease.unitSlug }}</td>
+              <td>{{ lease.propertyName }} <span>{{ lease.unitNr || lease.unitName || lease.unitSlug }}</span></td>
               <td>{{ lease.leaseRoleLabel }}</td>
               <td>{{ lease.startDate }} <span v-if="lease.endDate">- {{ lease.endDate }}</span></td>
               <td class="actions">

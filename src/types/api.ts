@@ -157,9 +157,42 @@ export type CompanyUserRoleOptionDto = ApiRecord
 export type OwnershipTransferCandidateDto = ApiRecord
 export type TransferOwnershipDto = ApiRecord
 export type OwnershipTransferResultDto = ApiRecord
-export type LeasePropertySearchResultDto = ApiRecord
-export type LeaseUnitOptionsDto = ApiRecord
-export type LeaseResidentSearchResultDto = ApiRecord
+export interface LeasePropertySearchItemDto extends ApiRecord {
+  propertyId?: string
+  customerId?: string
+  propertySlug?: string
+  propertyName?: string
+  customerSlug?: string
+  customerName?: string
+  addressLine?: string
+  city?: string
+  postalCode?: string
+}
+
+export interface LeasePropertySearchResultDto extends ApiRecord {
+  properties?: LeasePropertySearchItemDto[]
+}
+
+export interface LeaseUnitOptionDto extends ApiRecord {
+  unitId?: string
+  unitSlug?: string
+  unitNr?: string
+  floorNr?: number | null
+}
+
+export interface LeaseUnitOptionsDto extends ApiRecord {
+  units?: LeaseUnitOptionDto[]
+}
+
+export interface LeaseResidentSearchItemDto extends ApiRecord {
+  residentId?: string
+  fullName?: string
+  idCode?: string
+}
+
+export interface LeaseResidentSearchResultDto extends ApiRecord {
+  residents?: LeaseResidentSearchItemDto[]
+}
 
 export interface TicketOptionSetDto extends ApiRecord {
   statuses?: ApiRecord[]
@@ -322,17 +355,21 @@ export interface LeaseDto extends ApiRecord {
   leaseId?: string
   residentId?: string
   residentIdCode?: string
+  residentFullName?: string
   residentName?: string
   propertyId?: string
   propertyName?: string
   unitId?: string
   unitName?: string
+  unitNr?: string
   unitSlug?: string
   leaseRoleId?: string
+  leaseRoleCode?: string
   leaseRoleLabel?: string
   startDate?: string
   endDate?: string
   notes?: string
+  path?: string
 }
 
 export interface LeaseRoleOptionsDto extends ApiRecord {
@@ -343,6 +380,7 @@ export interface LeaseRoleOptionsDto extends ApiRecord {
 export interface LeaseRoleOptionDto extends ApiRecord {
   leaseRoleId?: string
   id?: string
+  code?: string
   label?: string
   name?: string
 }

@@ -1,6 +1,7 @@
 import { computed, reactive, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import type { ApiError } from '@/api/errors'
+import { useNotificationStore } from '@/stores/notifications'
 import type { ApiRecord } from '@/types/api'
 
 export const today = () => new Date().toISOString().slice(0, 10)
@@ -15,6 +16,7 @@ export const useAsyncState = () => {
   const pending = ref(false)
   const success = ref('')
   const error = ref<ApiError | Error | null>(null)
+  const notifications = useNotificationStore()
 
   const run = async <T>(action: () => Promise<T>, options?: { pending?: boolean; success?: string }) => {
     const pendingRef = options?.pending ? pending : loading
@@ -23,7 +25,10 @@ export const useAsyncState = () => {
     success.value = ''
     try {
       const result = await action()
-      if (options?.success) success.value = options.success
+      if (options?.success) {
+        success.value = options.success
+        notifications.push({ tone: 'success', title: options.success })
+      }
       return result
     } catch (caught) {
       error.value = caught as ApiError | Error
@@ -44,15 +49,27 @@ export const apiMessage = (error: ApiError | Error | null) => {
 
 export const fieldError = (error: ApiError | Error | null, field: string) => {
   const apiError = error as ApiError | null
-  const errors = apiError?.fieldErrors?.[field] ?? apiError?.fieldErrors?.[field.charAt(0).toUpperCase() + field.slice(1)]
+  const errors =
+    apiError?.fieldErrors?.[field] ??
+    apiError?.fieldErrors?.[field.charAt(0).toUpperCase() + field.slice(1)] ??
+    apiError?.fieldErrors?.[`$.${field}`]
   return Array.isArray(errors) ? errors.join(' ') : ''
 }
+
+export const hasFieldError = (error: ApiError | Error | null, field: string) => fieldError(error, field).length > 0
+
+export const traceId = (error: ApiError | Error | null) => (error as ApiError | null)?.traceId ?? ''
 
 export const optionId = (option: ApiRecord, fallbacks: string[]) =>
   String(fallbacks.map((key) => option[key]).find((value) => value !== undefined && value !== null) ?? '')
 
 export const optionLabel = (option: ApiRecord, fallbacks: string[]) =>
   String(fallbacks.map((key) => option[key]).find((value) => value !== undefined && value !== null) ?? '')
+
+export const roleOptions = (value: unknown) => {
+  const record = value as ApiRecord | null
+  return asArray(record?.roles ?? record?.leaseRoles)
+}
 
 export const asArray = <T = ApiRecord>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : [])
 

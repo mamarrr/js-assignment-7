@@ -1,5 +1,13 @@
 import { portalApi } from './generic'
-import type { ApiRecord, LeaseDto, LeaseRoleOptionDto, LeaseRoleOptionsDto } from '@/types/api'
+import type {
+  ApiRecord,
+  LeaseDto,
+  LeasePropertySearchResultDto,
+  LeaseResidentSearchResultDto,
+  LeaseRoleOptionDto,
+  LeaseRoleOptionsDto,
+  LeaseUnitOptionsDto,
+} from '@/types/api'
 
 export type { LeaseDto, LeaseRoleOptionDto, LeaseRoleOptionsDto }
 
@@ -27,9 +35,11 @@ export const unitLeasesApi = {
   update: (scope: UnitLeaseScope, leaseId: string, body: ApiRecord) =>
     portalApi.put<LeaseDto>(`${unitLeasesBase}/{leaseId}`, { ...scope, leaseId }, body),
   delete: (scope: UnitLeaseScope, leaseId: string) =>
-    portalApi.delete<void>(`${unitLeasesBase}/{leaseId}`, { ...scope, leaseId }),
+    portalApi.delete<ApiRecord>(`${unitLeasesBase}/{leaseId}`, { ...scope, leaseId }),
   searchResidents: (scope: UnitLeaseScope, search?: string) =>
-    portalApi.get<ApiRecord>(`${unitLeasesBase}/resident-search`, scope, { search }),
+    portalApi.get<LeaseResidentSearchResultDto>(`${unitLeasesBase}/resident-search`, scope, {
+      searchTerm: search,
+    }),
   roles: (scope: UnitLeaseScope) =>
     portalApi.get<LeaseRoleOptionsDto>(`${unitLeasesBase}/roles`, scope),
 }
@@ -41,11 +51,13 @@ export const residentLeasesApi = {
   update: (scope: ResidentLeaseScope, leaseId: string, body: ApiRecord) =>
     portalApi.put<LeaseDto>(`${residentLeasesBase}/{leaseId}`, { ...scope, leaseId }, body),
   delete: (scope: ResidentLeaseScope, leaseId: string) =>
-    portalApi.delete<void>(`${residentLeasesBase}/{leaseId}`, { ...scope, leaseId }),
+    portalApi.delete<ApiRecord>(`${residentLeasesBase}/{leaseId}`, { ...scope, leaseId }),
   searchProperties: (scope: ResidentLeaseScope, search?: string) =>
-    portalApi.get<ApiRecord>(`${residentLeasesBase}/property-search`, scope, { search }),
+    portalApi.get<LeasePropertySearchResultDto>(`${residentLeasesBase}/property-search`, scope, {
+      searchTerm: search,
+    }),
   unitsForProperty: (scope: ResidentLeaseScope, propertyId: string) =>
-    portalApi.get<ApiRecord>(`${residentLeasesBase}/properties/{propertyId}/units`, {
+    portalApi.get<LeaseUnitOptionsDto>(`${residentLeasesBase}/properties/{propertyId}/units`, {
       ...scope,
       propertyId,
     }),
